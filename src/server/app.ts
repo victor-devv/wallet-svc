@@ -2,10 +2,12 @@ import express, { Application } from 'express';
 import { InversifyExpressServer } from 'inversify-express-utils';
 import responseTime from 'response-time';
 import requestID from 'express-request-id';
-import container from '@app/common/config/ioc';
-import env from '@app/common/config/env';
 import helmet from 'helmet';
 import cors from 'cors';
+import container from '@app/common/config/ioc';
+import env from '@app/common/config/env';
+import requestLogger from './middlewares/requestLogger';
+import { responseLogger } from './middlewares/responseLogger';
 
 export class App {
   private server: InversifyExpressServer;
@@ -20,16 +22,11 @@ export class App {
       app.disable('x-powered-by');
       app.use(express.json());
       app.use(express.urlencoded({ extended: false }));
-
-      // add x-response-time to headers
       app.use(responseTime());
-
-      // add request ID header to request
       app.use(requestID());
-
+      app.use(requestLogger);
+      app.use(responseLogger);
       app.use(helmet());
-
-      // enable cors
       app.use(cors());
     });
 
