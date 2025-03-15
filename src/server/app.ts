@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import container from '@app/common/config/ioc';
 import env from '@app/common/config/env';
+import jsend from './middlewares/jsend';
 import requestLogger from './middlewares/requestLogger';
 import { responseLogger } from './middlewares/responseLogger';
 
@@ -26,6 +27,7 @@ export class App {
       app.use(requestID());
       app.use(requestLogger);
       app.use(responseLogger);
+      app.use(jsend);
       app.use(helmet());
       app.use(cors());
     });
