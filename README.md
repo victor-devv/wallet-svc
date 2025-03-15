@@ -1,2 +1,2 @@
-# Demo Credit
+# Demo Credit Wallet Service
 
