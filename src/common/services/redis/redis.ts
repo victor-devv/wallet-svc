@@ -111,8 +111,8 @@ export class RedisService {
     return this.redis.get(key);
   }
 
-  async quit(): Promise<string> {
-    return this.redis.quit();
+  async quit(): Promise<void> {
+    this.redis.quit();
   }
 }
 
