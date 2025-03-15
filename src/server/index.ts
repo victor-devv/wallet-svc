@@ -7,6 +7,7 @@ import env from '../common/config/env';
 import logger from '@app/common/services/logger/logger';
 import redis from '@app/common/services/redis';
 import { App } from './app';
+import db from './db';
 
 const start = async () => {
     try {
@@ -14,6 +15,7 @@ const start = async () => {
       const appServer = app.getServer().build();
       const httpServer = http.createServer(appServer);
     
+      await db.init();   
       await redis.init();
 
       httpServer.listen(env.port);
@@ -30,6 +32,7 @@ const start = async () => {
 start();
   
 process.once('SIGINT', () => {
-  redis.quit()
+  redis.quit();
+  db.disconnect();
 });
   
