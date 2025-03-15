@@ -12,7 +12,7 @@ export class App {
   constructor() {
     //public container = defaultContainer
     this.server = new InversifyExpressServer(container, null, {
-      rootPath: `${env.api_version}/interface`
+      rootPath: `${env.api_version}`
     });
 
     // setup server-level middlewares

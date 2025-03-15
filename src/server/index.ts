@@ -5,6 +5,7 @@ import 'module-alias/register';
 import http from 'http';
 import env from '../common/config/env';
 import logger from '@app/common/services/logger/logger';
+import redis from '@app/common/services/redis';
 import { App } from './app';
 
 const start = async () => {
@@ -13,6 +14,8 @@ const start = async () => {
       const appServer = app.getServer().build();
       const httpServer = http.createServer(appServer);
     
+      await redis.init();
+
       httpServer.listen(env.port);
       httpServer.on('listening', () =>
         logger.message(
@@ -27,6 +30,6 @@ const start = async () => {
 start();
   
 process.once('SIGINT', () => {
-
+  redis.quit()
 });
   
