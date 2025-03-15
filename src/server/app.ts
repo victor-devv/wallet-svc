@@ -9,6 +9,7 @@ import env from '@app/common/config/env';
 import jsend from './middlewares/jsend';
 import requestLogger from './middlewares/requestLogger';
 import { responseLogger } from './middlewares/responseLogger';
+import { MetricsService } from '@app/server/services';
 
 export class App {
   private server: InversifyExpressServer;
@@ -44,6 +45,8 @@ export class App {
           data: null
         });
       });
+
+      app.get('/metrics', MetricsService.send);
 
       // register 404 route handler
       app.use((req, res, next) => {
