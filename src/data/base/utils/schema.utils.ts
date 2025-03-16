@@ -3,6 +3,7 @@ import { ulid, isValid as isULID } from 'ulidx';
 import { CondPairUnary, cond } from 'lodash';
 import joi from 'joi';
 import {
+  isBVN,
   isPhoneNumberValid,
   validNigerianAccountNumber
 } from '@app/data/base/constants';
@@ -61,10 +62,12 @@ const makeNameQuery = (knex: Knex.QueryBuilder, user: string) => {
 const ulidSelector: UserQuerySelector = [isULID, (_id: string) => ({ _id })];
 const accountNumberSelector: UserQuerySelector = [validNigerianAccountNumber, (account_number) => ({ account_number })];
 const phoneNumberSelector: UserQuerySelector = [isPhoneNumberValid, (phone_number) => ({ phone_number })];
+
+const bvnSelector: UserQuerySelector = [isBVN, (bvn) => ({ bvn })];
 const emailSelector: UserQuerySelector = [isEmail, (email) => ({ email })];
 
 const uniqueIdSelectors = [ulidSelector, accountNumberSelector, phoneNumberSelector];
-const nonUniqueSelectors = [...uniqueIdSelectors, emailSelector];
+const nonUniqueSelectors = [...uniqueIdSelectors, bvnSelector, emailSelector];
 
 
 /**
@@ -81,7 +84,7 @@ export const userFilters = {
 
   /**
    * Returns a filter that can match [potentially] multiple user accounts.
-   * @param user the user's ID, phone number, account number, first or last name, or email
+   * @param user the user's ID, phone number, account number, first or last name, email or BVN
    */
   nonUniqueId(knex: Knex.QueryBuilder, user: string) {
     return cond(nonUniqueSelectors)(user) ?? makeNameQuery(knex, user);

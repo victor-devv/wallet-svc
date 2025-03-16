@@ -22,6 +22,12 @@ export const PHONE_CODES = {
 };
 
 /**
+ * checks if the passed argument is a possible Nigerian BVN
+ * @param bvn the user's account number
+ */
+export const isBVN = (bvn: string) => /^\d{11}$/.test(bvn);
+
+/**
  * Checks if a given phone number is valid.
  * The check basically validates the length & format of the phone number
  * @param phoneNumber The phone number to be validated.
