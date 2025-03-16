@@ -23,7 +23,7 @@ export class DB {
       },
       pool: { min: 2, max: 10 },
       migrations: {
-        directory: path.join(__dirname, '../data/migrations')
+        directory: path.join(__dirname, '../../src/data/migrations') //this because yarn:start will run in dist and not src
       }
     });
 
