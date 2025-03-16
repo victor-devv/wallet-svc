@@ -13,7 +13,7 @@ export class BaseRepository<T> implements Repository<T> {
 
   // Shortcut for Query Builder call
   public get qb(): Knex.QueryBuilder {
-    return this.knex<T>(this.table)
+    return this.knex<T>(this.table);
   }
 
   /**
@@ -30,7 +30,8 @@ export class BaseRepository<T> implements Repository<T> {
    */
   async create(attributes: any, condition: any): Promise<T> {
     const existingRecord = await this.qb.where(condition).first();
-    if (existingRecord) throw new DuplicateModelError(`${this.name} already exists`);
+    if (existingRecord)
+      throw new DuplicateModelError(`${this.name} already exists`);
 
     const [id] = await this.qb.insert(attributes).returning('id');
     return await this.byID(id);
@@ -40,9 +41,9 @@ export class BaseRepository<T> implements Repository<T> {
    * Finds a record by its id
    */
   async byID(id: number, archived = false): Promise<T> {
-    const builder = this.qb.where({id});
+    const builder = this.qb.where({ id });
     if (!archived) builder.whereNull('deleted_at');
-    
+
     const result = await builder.first();
     if (!result) throw new ModelNotFoundError(`${this.name} not found`);
 
@@ -59,10 +60,10 @@ export class BaseRepository<T> implements Repository<T> {
       .where(query.conditions);
 
     if (!archived) builder.whereNull('deleted_at');
-  
+
     const result = await builder.first();
 
-    return result as Promise<T> || null;
+    return (result as Promise<T>) || null;
   }
 
   /**
@@ -75,8 +76,11 @@ export class BaseRepository<T> implements Repository<T> {
       .where(query.conditions);
 
     if (!query.archived) builder.whereNull('deleted_at');
-    const result = await builder.orderBy(query.sort?.[0] || 'created_at', query.sort?.[1] || 'desc');
-    return result as Promise<T[]> || null;
+    const result = await builder.orderBy(
+      query.sort?.[0] || 'created_at',
+      query.sort?.[1] || 'desc'
+    );
+    return (result as Promise<T[]>) || null;
   }
 
   /**
@@ -105,7 +109,7 @@ export class BaseRepository<T> implements Repository<T> {
       per_page,
       total_pages: total_count[0].count,
       sorted_by: query.sort?.[0] || 'created_at',
-      result: rows as T[],
+      result: rows as T[]
     };
   }
 
@@ -116,7 +120,8 @@ export class BaseRepository<T> implements Repository<T> {
     const query = this.getQuery(condition);
 
     const updatedRows = await this.qb.where(query).update(update);
-    if (updatedRows[0] != 1) throw new ModelNotFoundError(`${this.name} not found`);
+    if (updatedRows[0] != 1)
+      throw new ModelNotFoundError(`${this.name} not found`);
 
     return await this.byQuery({ conditions: query });
   }
@@ -124,7 +129,10 @@ export class BaseRepository<T> implements Repository<T> {
   /**
    * Updates multiple records that match a query
    */
-  async updateAll(condition: number | object, update: object): Promise<boolean> {
+  async updateAll(
+    condition: number | object,
+    update: object
+  ): Promise<boolean> {
     const query = this.getQuery(condition);
     await this.qb.where(query).update(update);
     return true;

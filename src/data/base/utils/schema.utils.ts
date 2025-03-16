@@ -19,18 +19,27 @@ export const timestamps = (table: Knex.CreateTableBuilder) => {
 /**
  * Generates a ULID column
  */
-export const uuidColumn = (table: Knex.CreateTableBuilder, columnName = 'ulid') => {
+export const uuidColumn = (
+  table: Knex.CreateTableBuilder,
+  columnName = 'ulid'
+) => {
   table.string(columnName, 26).notNullable().unique().defaultTo(ulid());
 };
 
 /**
  * Defines schema types
  */
-export const trimmedString = (table: Knex.CreateTableBuilder, columnName: string) => {
+export const trimmedString = (
+  table: Knex.CreateTableBuilder,
+  columnName: string
+) => {
   table.string(columnName);
 };
 
-export const trimmedRequiredString = (table: Knex.CreateTableBuilder, columnName: string) => {
+export const trimmedRequiredString = (
+  table: Knex.CreateTableBuilder,
+  columnName: string
+) => {
   table.string(columnName).notNullable();
 };
 
@@ -42,7 +51,8 @@ type UserQuerySelector = CondPairUnary<string, Record<string, unknown>>;
 /**
  * Checks if a string is a valid email
  */
-const isEmail = (value: string) => joi.string().email().trim().validate(value).error == null;
+const isEmail = (value: string) =>
+  joi.string().email().trim().validate(value).error == null;
 
 /**
  * Creates a query object that matches either first_name or last_name fields using a case-insensitive search.
@@ -60,15 +70,24 @@ const makeNameQuery = (knex: Knex.QueryBuilder, user: string) => {
  * Query Selectors
  */
 const ulidSelector: UserQuerySelector = [isULID, (_id: string) => ({ _id })];
-const accountNumberSelector: UserQuerySelector = [validNigerianAccountNumber, (account_number) => ({ account_number })];
-const phoneNumberSelector: UserQuerySelector = [isPhoneNumberValid, (phone_number) => ({ phone_number })];
+const accountNumberSelector: UserQuerySelector = [
+  validNigerianAccountNumber,
+  (account_number) => ({ account_number })
+];
+const phoneNumberSelector: UserQuerySelector = [
+  isPhoneNumberValid,
+  (phone_number) => ({ phone_number })
+];
 
 const bvnSelector: UserQuerySelector = [isBVN, (bvn) => ({ bvn })];
 const emailSelector: UserQuerySelector = [isEmail, (email) => ({ email })];
 
-const uniqueIdSelectors = [ulidSelector, accountNumberSelector, phoneNumberSelector];
+const uniqueIdSelectors = [
+  ulidSelector,
+  accountNumberSelector,
+  phoneNumberSelector
+];
 const nonUniqueSelectors = [...uniqueIdSelectors, bvnSelector, emailSelector];
-
 
 /**
  * Methods for making a user account query filter based on the kind of user information provided
@@ -88,7 +107,7 @@ export const userFilters = {
    */
   nonUniqueId(knex: Knex.QueryBuilder, user: string) {
     return cond(nonUniqueSelectors)(user) ?? makeNameQuery(knex, user);
-  },
+  }
 };
 
 /**

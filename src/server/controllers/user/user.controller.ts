@@ -3,18 +3,13 @@ import {
   controller,
   httpGet,
   request,
-  response,
+  response
 } from 'inversify-express-utils';
-import { 
-  BaseController, 
-} from '../base';
+import { BaseController } from '../base';
 
 @controller('/user')
 export default class UserController extends BaseController {
-
-  @httpGet(
-    '/',
-  )
+  @httpGet('/')
   async getUser(@request() req: Request, @response() res: Response) {
     try {
       this.handleSuccess(req, res, 'hello world');

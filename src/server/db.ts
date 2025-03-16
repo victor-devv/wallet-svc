@@ -1,5 +1,5 @@
 import knex, { Knex } from 'knex';
-import env from '@app/common/config/env';
+import env from '@app/common/config/env/env';
 import logger from '@app/common/services/logger/logger';
 
 /**
@@ -21,7 +21,7 @@ export class DB {
       },
       pool: { min: 2, max: 10 },
       migrations: {
-        directory: "@app/data/migrations",
+        directory: '@app/data/migrations'
       }
     });
 
@@ -49,9 +49,10 @@ export class DB {
    * Runs migrations to sync the database schema
    */
   async init() {
-    await this.connection.migrate.latest()
+    await this.connection.migrate
+      .latest()
       .then(() => logger.message('📦  Migrations Applied!'))
-      .catch(err => logger.error(err, 'Migration Error:'));
+      .catch((err) => logger.error(err, 'Migration Error:'));
   }
 
   /**

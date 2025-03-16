@@ -24,7 +24,7 @@ export const reqSerializer = (req: Request) => {
     id: req.id,
     ...(req.body || Object.keys(req.body).length !== 0
       ? { body: removeSensitiveData(req.body) }
-      : undefined),
+      : undefined)
   };
 };
 
@@ -38,7 +38,7 @@ export const resSerializer = (res: Response) => {
     statusCode: res.statusCode,
     // @ts-ignore
     headers: res._headers,
-    body: res.body,
+    body: res.body
   };
 };
 
@@ -58,8 +58,8 @@ export const errSerializer = (err: any) => {
         response: {
           config: response.config,
           data: response.data,
-          status: response.status,
-        },
-      }),
+          status: response.status
+        }
+      })
   };
 };

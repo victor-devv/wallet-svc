@@ -1,5 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
-import env from '@app/common/config/env';
+import env from '@app/common/config/env/env';
 import logger from '@app/common/services/logger';
 import BloomFilter from 'bloomfilter-redis';
 
@@ -19,8 +19,8 @@ export class RedisService {
     this.redis = createClient({
       url: env.redis_url,
       ...(productionEnvironment && {
-        password: env.redis_password as string,
-      }),
+        password: env.redis_password as string
+      })
     });
 
     this.bloomFilters = { accountNumbers: null };
@@ -55,8 +55,8 @@ export class RedisService {
         redisSize: 256,
         hashesNum: 16,
         redisKey: 'account_numbers',
-        redisClient: this.redis,
-      },
+        redisClient: this.redis
+      }
     };
 
     this.bloomFilters.accountNumbers = new BloomFilter(options.accountNumbers);
@@ -100,7 +100,12 @@ export class RedisService {
     return this.redis.keys(pattern);
   }
 
-  async set(key: string, value: any, mode?: string, duration?: number): Promise<string> {
+  async set(
+    key: string,
+    value: any,
+    mode?: string,
+    duration?: number
+  ): Promise<string> {
     if (mode && duration) {
       return this.redis.set(key, value, { [mode]: duration });
     }

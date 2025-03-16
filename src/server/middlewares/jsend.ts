@@ -8,14 +8,14 @@ class JSendMiddleware implements JsendContract {
   success(data: any) {
     this.res.json({
       status: 'success',
-      data,
+      data
     });
   }
 
   fail(data: any) {
     this.res.status(HttpStatus.EXPECTATION_FAILED).json({
       status: 'fail',
-      data,
+      data
     });
   }
 
@@ -32,6 +32,6 @@ class JSendMiddleware implements JsendContract {
 }
 
 export default (req: Request, res: Response, next: NextFunction) => {
-  res.jSend = new JSendMiddleware(res); 
+  res.jSend = new JSendMiddleware(res);
   next();
 };

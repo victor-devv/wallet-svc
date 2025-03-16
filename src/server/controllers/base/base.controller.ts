@@ -2,7 +2,12 @@ import { injectable } from 'inversify';
 import { Response, Request } from 'express';
 import HttpStatus from 'http-status-codes';
 import _ from 'lodash';
-import { Query, DuplicateModelError, ModelNotFoundError, RepositoryError } from '@app/data/base';
+import {
+  Query,
+  DuplicateModelError,
+  ModelNotFoundError,
+  RepositoryError
+} from '@app/data/base';
 import { ControllerError } from '.';
 import logger from '@app/common/services/logger/logger';
 import { MetricsService } from '@app/server/services';
@@ -46,12 +51,7 @@ export class BaseController {
    * @param error Error object
    * @param message Optional error message. Useful for hiding internal errors from clients.
    */
-  handleError(
-    req: Request,
-    res: Response,
-    err: Error,
-    message?: string
-  ) {
+  handleError(req: Request, res: Response, err: Error, message?: string) {
     /**
      * Useful when we call an asynchrous function that might throw
      * after we've sent a response to client
@@ -61,7 +61,11 @@ export class BaseController {
     /**
      * Custom class error message supercedes generic error message
      */
-    if (message && (err instanceof ControllerError || err instanceof RepositoryError)) message = null;
+    if (
+      message &&
+      (err instanceof ControllerError || err instanceof RepositoryError)
+    )
+      message = null;
 
     let error_code;
     const controller_err = <ControllerError>err;

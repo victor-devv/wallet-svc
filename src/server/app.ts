@@ -4,8 +4,8 @@ import responseTime from 'response-time';
 import requestID from 'express-request-id';
 import helmet from 'helmet';
 import cors from 'cors';
-import container from '@app/common/config/ioc';
-import env from '@app/common/config/env';
+import container from '@app/common/config/ioc/ioc';
+import env from '@app/common/config/env/env';
 import jsend from './middlewares/jsend';
 import requestLogger from './middlewares/requestLogger';
 import { responseLogger } from './middlewares/responseLogger';
@@ -39,9 +39,9 @@ export class App {
     this.server.setErrorConfig((app: Application) => {
       // expose index endpoint
       app.get('/', (req, res) => {
-        res.status(200).json({ 
+        res.status(200).json({
           status: 'success',
-          message: "Server running",
+          message: 'Server running',
           data: null
         });
       });
@@ -51,7 +51,7 @@ export class App {
       // register 404 route handler
       app.use((req, res, next) => {
         res.status(404).json({
-          status: "error",
+          status: 'error',
           message: "Whoops! Route doesn't exist."
         });
       });

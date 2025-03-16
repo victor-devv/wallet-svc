@@ -1,7 +1,7 @@
 import bunyan, { Stream } from 'bunyan';
 import { Request, Response } from 'express';
 import { reqSerializer, resSerializer, errSerializer } from './serializers';
-import env from '@app/common/config/env';
+import env from '@app/common/config/env/env';
 
 interface ILogger {
   error(err: Error, message?: any);

@@ -1,6 +1,6 @@
 import { Gateman } from '@random-guys/gateman';
 import redis from '@app/common/services/redis';
-import env from '@app/common/config/env';
+import env from '@app/common/config/env/env';
 
 const authScheme = 'DemoCredit';
 
@@ -8,5 +8,5 @@ export default new Gateman({
   service: env.service_name,
   authScheme,
   redis,
-  secret: env.gateman_key,
+  secret: env.gateman_key
 });

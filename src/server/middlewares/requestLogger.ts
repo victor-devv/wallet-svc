@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import logger from '@app/common/services/logger/logger';
-import env from '@app/common/config/env';
+import env from '@app/common/config/env/env';
 
 /**
  * Skip logging requests from these user agents e.g Kuberenetes and Prometheus to
@@ -26,8 +26,8 @@ export default async (req: Request, res: Response, next: NextFunction) => {
   if (productionOrStagingEnvironment) {
     const realIP = req.headers['x-real-ip'];
     originIp = Array.isArray(realIP) ? realIP[0] : realIP;
-    
-    if(!originIp) originIp = req.ip;
+
+    if (!originIp) originIp = req.ip;
   } else {
     originIp = req.ip;
   }
