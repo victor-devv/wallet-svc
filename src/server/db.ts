@@ -6,12 +6,10 @@ import logger from '@app/common/services/logger/logger';
  * Database class. Handles database connections.
  */
 export class DB {
-  connection: Knex;
+  private static instance: DB;
+  private connection: Knex;
 
-  /**
-   * Connects to a MySQL server using Knex
-   */
-  async connect() {
+  private constructor() {
     this.connection = knex({
       client: 'mysql2',
       connection: {
@@ -31,11 +29,26 @@ export class DB {
   }
 
   /**
+   * Returns the singleton instance of the database connection
+   */
+  static getInstance(): DB {
+    if (!DB.instance) {
+      DB.instance = new DB();
+    }
+    return DB.instance;
+  }
+
+  /**
+   * Returns the existing database connection
+   */
+  getConnection(): Knex {
+    return this.connection;
+  }
+
+  /**
    * Runs migrations to sync the database schema
    */
   async init() {
-    await this.connect();
-
     await this.connection.migrate.latest()
       .then(() => logger.message('📦  Migrations Applied!'))
       .catch(err => logger.error(err, 'Migration Error:'));
@@ -46,7 +59,8 @@ export class DB {
    */
   async disconnect() {
     await this.connection.destroy();
+    DB.instance = null; // Reset the singleton instance
   }
 }
 
-export default new DB();
+export default DB.getInstance();
