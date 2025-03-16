@@ -16,11 +16,11 @@
     "build:tsc": "rm -rf ./dist && tsc -p ./tsconfig.json",
     "test": "rm -f logs.json && NODE_ENV=test jest --runInBand --forceExit --verbose",
     "seed": "node seed",
-    "make:migration": "npx knex migrate:make \"$1\" --knexfile ./src/server/db.ts -x ts",
-    "migrate:up": "npx knex migrate:latest --knexfile ./src/server/db.ts",
-    "migrate:down": "npx knex migrate:down --knexfile ./src/server/db.ts",
-    "migrate:down:latest": "npx knex migrate:rollback --knexfile ./src/server/db.ts",
-    "migrate:down:all": "npx knex migrate:rollback --all --knexfile ./src/server/db.ts"
+    "make:migration": "source .env && npx knex --knexfile ./src/common/config/db/knexfile.ts migrate:make -x ts",
+    "migrate:up": "source .env && npx knex --knexfile ./src/common/config/db/knexfile.ts migrate:latest",
+    "migrate:down": "source .env && npx knex --knexfile ./src/common/config/db/knexfile.ts migrate:down",
+    "migrate:down:latest": "source .env && npx knex --knexfile ./src/common/config/db/knexfile.ts migrate:rollback",
+    "migrate:down:all": "source .env && npx knex --knexfile ./src/common/config/db/knexfile.ts migrate:rollback --all"
   },
   "_moduleAliases": {
     "@app": "./dist"
@@ -34,6 +34,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-request-id": "^1.4.1",
+    "google-libphonenumber": "^3.2.40",
     "helmet": "^8.0.0",
     "http-status-codes": "^2.3.0",
     "inversify": "^6.0.1",

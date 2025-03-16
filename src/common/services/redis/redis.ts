@@ -39,7 +39,7 @@ export class RedisService {
    */
   async init() {
     try {
-      // await this.redis.connect();
+      await this.redis.connect();
       await this.initBloomFilters();
     } catch (error) {
       logger.error(error, 'Failed to initialize Redis.');
