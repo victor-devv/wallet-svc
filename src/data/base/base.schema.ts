@@ -10,6 +10,8 @@ export const SchemaFactory = (
 
   // Define the `id` primary key column
   table.increments('id').unsigned().primary();
+  table.string('ulid', 26).unique();
+  
 
   // Apply additional schema fields
   Object.entries(schemaFields).forEach(([column, definition]) => {

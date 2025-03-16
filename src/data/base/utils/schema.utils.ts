@@ -19,7 +19,7 @@ export const timestamps = (table: Knex.CreateTableBuilder) => {
 /**
  * Generates a ULID column
  */
-export const uuidColumn = (
+export const ulidColumn = (
   table: Knex.CreateTableBuilder,
   columnName = 'ulid'
 ) => {
