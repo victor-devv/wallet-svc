@@ -104,16 +104,15 @@ export class BaseRepository<T> implements Repository<T> {
   /**
    * Finds all records that match a query
    */
-  async all(query: Query): Promise<T[]> {
+  async all(query?: Query): Promise<T[]> {
     const builder = this.qb
-      .column(query.projections || '*')
-      .select()
-      .where(query.conditions);
+      .select(query?.projections?.length ? query?.projections : '*')
+      .where(query?.conditions || {});
 
-    if (!query.archived) builder.whereNull('deleted_at');
+    if (!query?.archived) builder.whereNull('deleted_at');
     return await builder.orderBy(
-      query.sort?.[0] || 'created_at',
-      query.sort?.[1] || 'desc'
+      query?.sort?.[0] || 'created_at',
+      query?.sort?.[1] || 'desc'
     );
   }
 

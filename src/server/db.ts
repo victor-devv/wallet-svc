@@ -2,7 +2,7 @@ import path from 'path';
 import knex, { Knex } from 'knex';
 import env from '@app/common/config/env/env';
 import logger from '@app/common/services/logger/logger';
-import { attachUlidHook } from '@app/data/base/utils/query.utils';
+import { applyUlidReplacementHook } from '@app/data/base/utils/query.utils';
 
 /**
  * Database class. Handles database connections.
@@ -27,7 +27,7 @@ export class DB {
       }
     });
 
-    attachUlidHook(this.connection);
+    applyUlidReplacementHook(this.connection);
     logger.message('📦  MySQL Connected!');
   }
 

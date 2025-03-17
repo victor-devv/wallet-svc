@@ -2,7 +2,7 @@
  * A repository query
  */
 export interface Query {
-  conditions: object;
+  conditions?: object;
   projections?: Array<string>;
   sort?: Array<string>;
   archived?: boolean | string;
