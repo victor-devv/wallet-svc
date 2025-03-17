@@ -5,23 +5,23 @@ export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('users', (table) => {
     SchemaFactory(knex, table, {
       first_name: (t) => t.string('first_name').notNullable(),
-      middle_name: (t) => t.string('middle_name').nullable(),
+      middle_name: (t) => t.string('middle_name'),
       last_name: (t) => t.string('last_name').notNullable(),
       gender: (t) => t.enum('gender', ['male', 'female']).notNullable(),
       dob: (t) => t.string('dob').notNullable(),
       phone_number: (t) => t.string('phone_number').notNullable().unique(),
       email: (t) => t.string('email').notNullable().unique(),
-      password: (t) => t.string('password').notNullable(),
-      bvn: (t) => t.string('bvn').nullable().unique(),
-      selfie: (t) => t.string('selfie').nullable(),
-      profile_picture: (t) => t.string('profile_picture').nullable(),
+      passcode: (t) => t.string('passcode').notNullable(),
+      bvn: (t) => t.string('bvn').unique(),
+      selfie: (t) => t.string('selfie'),
+      profile_picture: (t) => t.string('profile_picture'),
       location: (t) => t.json('location').notNullable(),
 
-      account_number: (t) => t.string('account_number').nullable(),
-      transaction_pin: (t) => t.string('transaction_pin').nullable(),
-      channel: (t) => t.string('channel').nullable(),
+      account_number: (t) => t.string('account_number'),
+      transaction_pin: (t) => t.string('transaction_pin'),
+      channel: (t) => t.string('channel'),
 
-      phone_meta: (t) => t.json('phone_meta').nullable(),
+      phone_meta: (t) => t.json('phone_meta'),
       devices: (t) => t.json('devices').notNullable(),
       device_id: (t) => t.string('device_id').notNullable(),
       
