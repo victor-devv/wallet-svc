@@ -72,9 +72,9 @@ export class BaseController {
     error_code = controller_err.error_code;
 
     //@ts-ignore
-    if (err.data.error_code) {
+    if (err.data?.error_code) {
       //@ts-ignore
-      error_code = err.data.error_code;
+      error_code = err.data?.error_code;
     }
 
     const errorMessage = message || err.message;

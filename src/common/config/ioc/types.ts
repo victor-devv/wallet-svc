@@ -6,5 +6,6 @@ export const TYPES = {
   WalletRepository: Symbol.for('WalletRepository'),
   UserService: Symbol.for('UserService'),
   UserRepository: Symbol.for('UserRepository'),
-  BaseRepository: Symbol.for('BaseRepository')
+  BaseRepository: Symbol.for('BaseRepository'),
+  Controller: Symbol.for('Controller')
 };
