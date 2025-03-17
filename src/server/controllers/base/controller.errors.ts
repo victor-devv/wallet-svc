@@ -19,7 +19,6 @@ export class ActionNotAllowedError extends ControllerError {
 
 /**
  * Sets the HTTP status code to 404 `Not Found` when a queried item is not found.
- *
  */
 export class NotFoundError extends ControllerError {
   constructor(message: string) {
@@ -27,6 +26,16 @@ export class NotFoundError extends ControllerError {
   }
 }
 
+export class TooManyRequestsError extends ControllerError {
+  constructor() {
+    super(`You have exceeded the number requests allowed in window limit`);
+    this.code = HttpStatus.TOO_MANY_REQUESTS;
+  }
+}
+
+/**
+ * USER ACCOUNT BASED ERRORS
+ */
 export class UserNotFoundError extends ControllerError {
   constructor(message: string) {
     const errorMessage = `Account: (${message}) not found`;
@@ -44,27 +53,6 @@ export class UserExistsError extends ControllerError {
 
     this.code = HttpStatus.BAD_REQUEST;
     this.error_code = 301;
-  }
-}
-
-export class CountryNotSupportedError extends ControllerError {
-  constructor() {
-    const errorMessage =
-      'The country you have selected is not supported at the moment';
-    super(errorMessage);
-
-    this.code = HttpStatus.BAD_REQUEST;
-    this.error_code = 399;
-  }
-}
-
-export class InvalidPhoneNumberError extends ControllerError {
-  constructor() {
-    const errorMessage = 'The phone number you have entered is invalid';
-    super(errorMessage);
-
-    this.code = HttpStatus.BAD_REQUEST;
-    this.error_code = 316;
   }
 }
 
@@ -91,28 +79,6 @@ export class LockedOutError extends ControllerError {
   }
 }
 
-export class AccountClosedError extends ControllerError {
-  constructor() {
-    const errorMessage =
-      'This number is linked to a deleted account. Kindly contact support to recover your account';
-    super(errorMessage);
-
-    this.code = HttpStatus.FORBIDDEN;
-    this.error_code = 329;
-  }
-}
-
-export class AccountRedisLockedError extends ControllerError {
-  constructor() {
-    const errorMessage =
-      'User has been unlocked by admin and should be redirected to the password recovery flow';
-    super(errorMessage);
-
-    this.code = HttpStatus.FORBIDDEN;
-    this.error_code = 330;
-  }
-}
-
 export class AddressNotSetError extends ControllerError {
   constructor() {
     const errorMessage =
@@ -121,6 +87,27 @@ export class AddressNotSetError extends ControllerError {
 
     this.code = HttpStatus.BAD_REQUEST;
     this.error_code = 307;
+  }
+}
+
+export class TransactionPinBlockedError extends ControllerError {
+  constructor() {
+    const errorMessage =
+      'Your transaction PIN has been blocked because you exceeded the number of allowed attempts.\nTry resetting your transaction PIN to regain access';
+    super(errorMessage);
+
+    this.code = HttpStatus.BAD_REQUEST;
+    this.error_code = 308;
+  }
+}
+
+export class InvalidPhoneNumberError extends ControllerError {
+  constructor() {
+    const errorMessage = 'The phone number you have entered is invalid';
+    super(errorMessage);
+
+    this.code = HttpStatus.BAD_REQUEST;
+    this.error_code = 316;
   }
 }
 
@@ -207,6 +194,39 @@ export class AccountBlockCodeUsedError extends ControllerError {
   }
 }
 
+export class AccountClosedError extends ControllerError {
+  constructor() {
+    const errorMessage =
+      'This number is linked to a deleted account. Kindly contact support to recover your account';
+    super(errorMessage);
+
+    this.code = HttpStatus.FORBIDDEN;
+    this.error_code = 329;
+  }
+}
+
+export class AccountRedisLockedError extends ControllerError {
+  constructor() {
+    const errorMessage =
+      'User has been unlocked by admin and should be redirected to the password recovery flow';
+    super(errorMessage);
+
+    this.code = HttpStatus.FORBIDDEN;
+    this.error_code = 330;
+  }
+}
+
+export class CountryNotSupportedError extends ControllerError {
+  constructor() {
+    const errorMessage =
+      'The country you have selected is not supported at the moment';
+    super(errorMessage);
+
+    this.code = HttpStatus.BAD_REQUEST;
+    this.error_code = 399;
+  }
+}
+
 export interface UserNotFoundErrorInterface extends Error {
   code: number;
   error_code: number;
@@ -215,9 +235,70 @@ export interface UserNotFoundErrorInterface extends Error {
   stack: string;
 }
 
-export class TooManyRequestsError extends ControllerError {
+/**
+ * WALLET BASED ERRORS
+ */
+
+/**
+ * Sets the HTTP status code to 404 `Not Found` when a wallet is not found
+ */
+export class WalletNotFoundError extends ControllerError {
+  constructor(message: string) {
+    super(`Account: (${message}) not found`, HttpStatus.NOT_FOUND, 100);
+  }
+}
+
+/**
+ * Sets the HTTP status code to 400 `Bad Request` when an operation is attempted on a frozen wallet
+ */
+export class FrozenWalletError extends ControllerError {
   constructor() {
-    super(`You have exceeded the number requests allowed in window limit`);
-    this.code = HttpStatus.TOO_MANY_REQUESTS;
+    super(
+      'Your account has been frozen. Kindly contact customer care for support.'
+    );
+
+    this.code = HttpStatus.BAD_REQUEST;
+    this.error_code = 101;
+  }
+}
+
+/**
+ * Sets the HTTP status code to 400 `Bad Request` when a debit operation is attempted on a wallet with insufficient funds
+ */
+export class InsufficientFundsError extends ControllerError {
+  constructor(message: string) {
+    super(
+      `${message} you do not have sufficient funds.`,
+      HttpStatus.BAD_REQUEST,
+      102
+    );
+  }
+}
+
+/**
+ * Sets the HTTP status code to 400 `Bad Request` when a wallet attempts to transfer money to itself.
+ */
+export class SameWalletError extends ControllerError {
+  constructor() {
+    super("You can't transfer money to yourself.", HttpStatus.BAD_REQUEST, 103);
+  }
+}
+
+export class ChannelNotFoundError extends ControllerError {
+  constructor(channel: string) {
+    super(
+      `the requested user channel (${channel}) does not exist`,
+      HttpStatus.BAD_REQUEST,
+      104
+    );
+  }
+}
+
+/**
+ * Sets the HTTP status code to 400 `Bad Request` when the Nuban block for a channel has been filled
+ */
+export class NubanRangeError extends ControllerError {
+  constructor() {
+    super('Nuban generated will be out of range', HttpStatus.BAD_REQUEST, 105);
   }
 }

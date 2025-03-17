@@ -25,3 +25,43 @@ export class NotFoundError extends ControllerError {
     super(message, HttpStatus.NOT_FOUND);
   }
 }
+
+export class InvalidSecretKeyError extends ControllerError {
+  constructor() {
+    const errorMessage = `the secret key provided doesn't exist`;
+    super(errorMessage);
+
+    this.code = HttpStatus.UNAUTHORIZED;
+    this.error_code = 701;
+  }
+}
+
+export class MissingAuthHeaderError extends ControllerError {
+  constructor() {
+    const errorMessage = `authorization header not found`;
+    super(errorMessage);
+
+    this.code = HttpStatus.UNAUTHORIZED;
+    this.error_code = 702;
+  }
+}
+
+export class InvalidAuthSchemeError extends ControllerError {
+  constructor() {
+    const errorMessage = `invalid auth scheme`;
+    super(errorMessage);
+
+    this.code = HttpStatus.UNAUTHORIZED;
+    this.error_code = 703;
+  }
+}
+
+export class ForbiddenError extends ControllerError {
+  constructor() {
+    const errorMessage = `Forbidden!`;
+    super(errorMessage);
+
+    this.code = HttpStatus.FORBIDDEN;
+    this.error_code = 704;
+  }
+}

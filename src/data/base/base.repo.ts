@@ -1,14 +1,24 @@
-import db from '@app/server/db';
+import { injectable, unmanaged } from 'inversify';
 import { Knex } from 'knex';
+import { ulid } from 'ulidx';
+import db from '@app/server/db';
 import { DuplicateModelError, ModelNotFoundError } from '.';
 import { Repository, Query, QueryResult, PaginationQuery } from '.';
 
+@injectable()
 export class BaseRepository<T> implements Repository<T> {
   protected readonly table: string;
   protected readonly knex: Knex = db.getConnection();
 
-  constructor(private name: string, tableName: string) {
+  constructor(
+    @unmanaged() private name: string,
+    @unmanaged() tableName: string
+  ) {
     this.table = tableName;
+  }
+
+  public get baseKnex(): Knex {
+    return this.knex;
   }
 
   // Shortcut for Query Builder call
@@ -19,35 +29,62 @@ export class BaseRepository<T> implements Repository<T> {
   /**
    * Converts a condition into a Knex query filter
    */
-  getQuery(condition: number | object) {
-    return typeof condition === 'number' || typeof condition === 'string'
+  getQuery(condition: number | string | object) {
+    return typeof condition === 'number'
       ? { id: condition }
+      : typeof condition === 'string'
+      ? { ulid: condition }
       : { ...condition };
   }
 
   /**
-   * Creates one record.
+   * Creates one or more record.
    */
-  async create(attributes: any, condition: any): Promise<T> {
-    const existingRecord = await this.qb.where(condition).first();
-    if (existingRecord)
-      throw new DuplicateModelError(`${this.name} already exists`);
+  async create(attributes: any, trx?: Knex.Transaction): Promise<T> {
+    let qb;
 
-    const [id] = await this.qb.insert(attributes).returning('id');
-    return await this.byID(id);
+    if (trx) qb = trx(this.table);
+    else qb = this.qb;
+
+    const isMultiSave = Array.isArray(attributes);
+
+    if (isMultiSave) {
+      attributes = attributes.map((record) => ({ ulid: ulid(), ...record }));
+    } else {
+      // If inserting a single record, add `ulid`
+      attributes = { ulid: ulid(), ...attributes };
+    }
+
+    try {
+      const [insertId] = await qb.insert(attributes);
+
+      if (isMultiSave) return await qb.where('id', insertId).select('*');
+      else return await this.byID(insertId);
+    } catch (error) {
+      if (
+        error.code === 'ER_DUP_ENTRY' ||
+        error.code === 'SQLITE_CONSTRAINT' ||
+        error.code === '23505'
+      ) {
+        throw new DuplicateModelError(`${this.name} exists already`);
+      }
+      throw error;
+    }
   }
 
   /**
    * Finds a record by its id
    */
-  async byID(id: number, archived = false): Promise<T> {
-    const builder = this.qb.where({ id });
+  async byID(id: number | string, archived = false): Promise<T> {
+    const query = typeof id === 'number' ? { id } : { ulid: id };
+
+    const builder = this.qb.where(query);
     if (!archived) builder.whereNull('deleted_at');
 
     const result = await builder.first();
     if (!result) throw new ModelNotFoundError(`${this.name} not found`);
 
-    return result as Promise<T>;
+    return result;
   }
 
   /**
@@ -61,9 +98,7 @@ export class BaseRepository<T> implements Repository<T> {
 
     if (!archived) builder.whereNull('deleted_at');
 
-    const result = await builder.first();
-
-    return (result as Promise<T>) || null;
+    return await builder.first();
   }
 
   /**
@@ -76,11 +111,10 @@ export class BaseRepository<T> implements Repository<T> {
       .where(query.conditions);
 
     if (!query.archived) builder.whereNull('deleted_at');
-    const result = await builder.orderBy(
+    return await builder.orderBy(
       query.sort?.[0] || 'created_at',
       query.sort?.[1] || 'desc'
     );
-    return (result as Promise<T[]>) || null;
   }
 
   /**
@@ -109,18 +143,27 @@ export class BaseRepository<T> implements Repository<T> {
       per_page,
       total_pages: total_count[0].count,
       sorted_by: query.sort?.[0] || 'created_at',
-      result: rows as T[]
+      result: rows
     };
   }
 
   /**
    * Updates a single record that matches a particular condition.
    */
-  async update(condition: number | object, update: object): Promise<T> {
+  async update(
+    condition: string | object,
+    update: object,
+    trx?: Knex.Transaction
+  ): Promise<T> {
+    let qb;
+
+    if (trx) qb = trx(this.table);
+    else qb = this.qb;
+
     const query = this.getQuery(condition);
 
-    const updatedRows = await this.qb.where(query).update(update);
-    if (updatedRows[0] != 1)
+    const updatedRows = await qb.where(query).update(update);
+    if (updatedRows !== 1)
       throw new ModelNotFoundError(`${this.name} not found`);
 
     return await this.byQuery({ conditions: query });
@@ -130,18 +173,24 @@ export class BaseRepository<T> implements Repository<T> {
    * Updates multiple records that match a query
    */
   async updateAll(
-    condition: number | object,
-    update: object
+    condition: string | object,
+    update: object,
+    trx?: Knex.Transaction
   ): Promise<boolean> {
+    let qb;
+
+    if (trx) qb = trx(this.table);
+    else qb = this.qb;
+
     const query = this.getQuery(condition);
-    await this.qb.where(query).update(update);
+    await qb.where(query).update(update);
     return true;
   }
 
   /**
    * Soft deletes a record by setting deleted_at timestamp
    */
-  async remove(condition: number | object): Promise<boolean> {
+  async remove(condition: string | object): Promise<boolean> {
     const query = this.getQuery(condition);
 
     const record = await this.byQuery({ conditions: query });
@@ -154,7 +203,7 @@ export class BaseRepository<T> implements Repository<T> {
   /**
    * Permanently deletes a record
    */
-  async destroy(condition: number | object): Promise<boolean> {
+  async destroy(condition: string | object): Promise<boolean> {
     const query = this.getQuery(condition);
 
     const record = await this.byQuery({ conditions: query });
