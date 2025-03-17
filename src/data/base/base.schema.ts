@@ -25,7 +25,6 @@ export const SchemaFactory = (
     .defaultTo(knex.fn.now());
   table
     .timestamp('updated_at', { useTz: false })
-    .nullable()
     .defaultTo(knex.raw('NULL ON UPDATE CURRENT_TIMESTAMP'));
-  table.timestamp('deleted_at', { useTz: false }).nullable();
+  table.timestamp('deleted_at', { useTz: false });
 };

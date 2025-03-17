@@ -13,7 +13,7 @@ import {
  */
 export const timestamps = (table: Knex.CreateTableBuilder) => {
   table.timestamps(true, true);
-  table.timestamp('deleted_at').nullable();
+  table.timestamp('deleted_at');
 };
 
 /**

@@ -31,13 +31,13 @@ export interface PaginationQuery {
 }
 
 export interface Repository<T> {
-  create(attributes: any, condition: any): Promise<T>;
-  byID(id: number, projections?: any, archived?: boolean): Promise<T>;
+  create(attributes: any): Promise<T>;
+  byID(id: string, projections?: any, archived?: boolean): Promise<T>;
   byQuery(query: any, projections?: any, archived?: boolean): Promise<T>;
   list(query: PaginationQuery): Promise<QueryResult<T>>;
   all(query: Query): Promise<T[]>;
-  update(condition: number | object, update: any): Promise<T>;
-  updateAll(condition: number | object, update: any): Promise<boolean>;
-  remove(condition: number | object): Promise<boolean>;
-  destroy(condition: number | object): Promise<boolean>;
+  update(condition: string | object, update: any): Promise<T>;
+  updateAll(condition: string | object, update: any): Promise<boolean>;
+  remove(condition: string | object): Promise<boolean>;
+  destroy(condition: string | object): Promise<boolean>;
 }
