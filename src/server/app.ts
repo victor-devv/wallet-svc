@@ -95,7 +95,22 @@ export class App {
 
       redis.set('ACCOUNT_CHANNELS_BLOCKS', JSON.stringify(channels));
       logger.message('😎  default account channel(s) created');
-    } catch (error) {}
+    } catch (error) {
+      //channel likely already exists
+      try {
+        //@ts-ignore
+        const _channels = await ChannelRepo.all() as Channel[];
+        const channels = _channels.map((it) => {
+          return {
+            name: it.name,
+            min: it.min,
+            max: it.max
+          };
+        });
+        redis.set('ACCOUNT_CHANNELS_BLOCKS', JSON.stringify(channels));
+        logger.message('😎  default account channel(s) created');
+      } catch (error) {logger.error(error);}
+    }
   }
 
   /**

@@ -52,10 +52,10 @@ export class DB {
    * Runs migrations to sync the database schema
    */
   async init() {
-    await this.connection.migrate
-      .latest()
-      .then(() => logger.message('📦  Migrations Applied!'))
-      .catch((err) => logger.error(err, 'Migration Error:'));
+    // await this.connection.migrate
+    //   .latest()
+    //   .then(() => logger.message('📦  Migrations Applied!'))
+    //   .catch((err) => logger.error(err, 'Migration Error:'));
   }
 
   /**

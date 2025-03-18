@@ -1,6 +1,6 @@
 import { ULID } from 'ulidx'
 export interface Model {
-  id: number;
+  id: string;
   ulid: ULID;
   created_at: Date;
   deleted_at: Date;

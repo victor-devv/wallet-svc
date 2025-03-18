@@ -1,8 +1,10 @@
+import { injectable } from 'inversify';
 import { Knex } from 'knex';
 import '@app/common/utils/string.extensions';
 import { BaseRepository } from '../base';
 import { Nuban, NubanImpl } from './nuban.model';
 
+@injectable()
 export class NubanRepository extends BaseRepository<Nuban> {
   constructor() {
     super('Nuban', 'nubans');
@@ -20,18 +22,6 @@ export class NubanRepository extends BaseRepository<Nuban> {
     return !!result;
   }
 
-  async getLastChannelWallet(channel: string, trx: Knex.Transaction) {
-    return await trx(this.table)
-      .whereRaw('JSON_UNQUOTE(JSON_EXTRACT(??, "$.user.channel")) = ?', [
-        'account',
-        channel
-      ])
-      .orderByRaw('JSON_UNQUOTE(JSON_EXTRACT(??, "$.account.nuban")) DESC', [
-        'account'
-      ])
-      .first();
-  }
-
   async createNuban(account_number: string, trx: Knex.Transaction) {
     const bank_code = '100000'; //faux bank code
     const check_digit = `${this.calCheckDigit(account_number, bank_code)}`;
@@ -43,7 +33,7 @@ export class NubanRepository extends BaseRepository<Nuban> {
       nuban: account_number + check_digit
     };
 
-    return this.create(account, trx);
+    return this.create(account, false, trx);
   }
 
   getNuban (account: NubanImpl) {

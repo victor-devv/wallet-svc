@@ -15,8 +15,9 @@ const start = async () => {
     const appServer = app.getServer().build();
     const httpServer = http.createServer(appServer);
 
-    await db.init();
     redis.init();
+    await db.init();
+    
 
     httpServer.listen(env.port);
     httpServer.on('listening', () =>

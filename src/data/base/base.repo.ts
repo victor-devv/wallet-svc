@@ -3,7 +3,12 @@ import { Knex } from 'knex';
 import { ulid } from 'ulidx';
 import db from '@app/server/db';
 import { DuplicateModelError, ModelNotFoundError } from '.';
-import { Repository, Query, QueryResult, PaginationQuery } from '.';
+import {
+  Repository,
+  Query,
+  QueryResult,
+  PaginationQuery,
+} from '.';
 
 @injectable()
 export class BaseRepository<T> implements Repository<T> {
@@ -40,26 +45,26 @@ export class BaseRepository<T> implements Repository<T> {
   /**
    * Creates one or more record.
    */
-  async create(attributes: any, trx?: Knex.Transaction): Promise<T> {
-    let qb;
-
-    if (trx) qb = trx(this.table);
-    else qb = this.qb;
+  async create(
+    attributes: any,
+    return_id: boolean = false,
+    trx?: Knex.Transaction
+  ): Promise<T> {
+    const qb = trx ? trx(this.table) : this.qb;
 
     const isMultiSave = Array.isArray(attributes);
-
-    if (isMultiSave) {
+    if (isMultiSave)
       attributes = attributes.map((record) => ({ ulid: ulid(), ...record }));
-    } else {
-      // If inserting a single record, add `ulid`
-      attributes = { ulid: ulid(), ...attributes };
-    }
+    else attributes = { ulid: ulid(), ...attributes };
 
     try {
       const [insertId] = await qb.insert(attributes);
 
-      if (isMultiSave) return await qb.where('id', insertId).select('*');
-      else return await this.byID(insertId);
+      if (isMultiSave)
+        return await (return_id
+          ? qb.where('id', insertId).select('*').select({ _id: 'id' })
+          : qb.where('id', insertId).select('*'));
+      else return await this.byID(insertId, '*', false, return_id, trx);
     } catch (error) {
       if (
         error.code === 'ER_DUP_ENTRY' ||
@@ -75,13 +80,24 @@ export class BaseRepository<T> implements Repository<T> {
   /**
    * Finds a record by its id
    */
-  async byID(id: number | string, archived = false): Promise<T> {
+  async byID(
+    id: number | string,
+    projections: string | Array<string> | object = '*',
+    archived = false,
+    return_id: boolean = false,
+    trx?: Knex.Transaction
+  ): Promise<T> {
     const query = typeof id === 'number' ? { id } : { ulid: id };
 
-    const builder = this.qb.where(query);
+    const qb = trx ? trx(this.table) : this.qb;
+
+    const builder = qb.where(query);
     if (!archived) builder.whereNull('deleted_at');
 
-    const result = await builder.first();
+    const result = await (return_id
+      ? builder.select(projections).select({ _id: 'id' }).first()
+      : builder.select(projections).first());
+
     if (!result) throw new ModelNotFoundError(`${this.name} not found`);
 
     return result;
@@ -90,25 +106,35 @@ export class BaseRepository<T> implements Repository<T> {
   /**
    * Finds a record by an object query.
    */
-  async byQuery(query: Query, archived?: boolean): Promise<T> {
-    const builder = this.qb
+  async byQuery(
+    query: Query,
+    archived: boolean = false,
+    return_id: boolean = false,
+    trx?: Knex.Transaction,
+  ): Promise<T> {
+    const qb = trx ? trx(this.table) : this.qb;
+
+    const builder = qb
       .column(query.projections || '*')
       .select()
       .where(query.conditions);
 
     if (!archived) builder.whereNull('deleted_at');
 
-    return await builder.first();
+    return await (return_id
+      ? builder.select({ _id: 'id' }).first()
+      : builder.first());
   }
 
   /**
    * Finds all records that match a query
    */
-  async all(query?: Query): Promise<T[]> {
+  async all(query?: Query, return_id: boolean = false): Promise<T[]> {
     const builder = this.qb
-      .select(query?.projections?.length ? query?.projections : '*')
+      .select(query?.projections || '*')
       .where(query?.conditions || {});
 
+    if (return_id) builder.select({ _id: 'id' });
     if (!query?.archived) builder.whereNull('deleted_at');
     return await builder.orderBy(
       query?.sort?.[0] || 'created_at',
@@ -119,7 +145,10 @@ export class BaseRepository<T> implements Repository<T> {
   /**
    * Same as `all()` but returns paginated results.
    */
-  async list(query: PaginationQuery): Promise<QueryResult<T>> {
+  async list(
+    query: PaginationQuery,
+    return_id: boolean = false
+  ): Promise<QueryResult<T>> {
     const page = Number(query.page) - 1 || 0;
     const per_page = Number(query.per_page) || 20;
     const offset = page * per_page;
@@ -152,12 +181,10 @@ export class BaseRepository<T> implements Repository<T> {
   async update(
     condition: string | object,
     update: object,
+    return_id: boolean = false,
     trx?: Knex.Transaction
   ): Promise<T> {
-    let qb;
-
-    if (trx) qb = trx(this.table);
-    else qb = this.qb;
+    const qb = trx ? trx(this.table) : this.qb;
 
     const query = this.getQuery(condition);
 
@@ -165,7 +192,7 @@ export class BaseRepository<T> implements Repository<T> {
     if (updatedRows !== 1)
       throw new ModelNotFoundError(`${this.name} not found`);
 
-    return await this.byQuery({ conditions: query });
+    return await this.byQuery({ conditions: query }, false, return_id, trx);
   }
 
   /**
@@ -176,10 +203,7 @@ export class BaseRepository<T> implements Repository<T> {
     update: object,
     trx?: Knex.Transaction
   ): Promise<boolean> {
-    let qb;
-
-    if (trx) qb = trx(this.table);
-    else qb = this.qb;
+    const qb = trx ? trx(this.table) : this.qb;
 
     const query = this.getQuery(condition);
     await qb.where(query).update(update);

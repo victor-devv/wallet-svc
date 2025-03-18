@@ -2,10 +2,10 @@ import { Request, Response } from 'express';
 import bunyan from 'bunyan';
 
 /**
- * Prevents passwords, credit card details etc from being logged.
+ * Prevents passwords, etc from being logged.
  * @param body HTTP request body
  */
-const removeSensitiveData = ({ password, ...body }) => body;
+const removeSensitiveData = ({ passcode, ...body }) => body;
 
 /**
  * Serializes an Express request for Bunyan logging
@@ -36,8 +36,7 @@ export const resSerializer = (res: Response) => {
   if (!res || !res.statusCode) return res;
   return {
     statusCode: res.statusCode,
-    // @ts-ignore
-    headers: res._headers,
+    headers: res.getHeaders(),
     body: res.body
   };
 };

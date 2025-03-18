@@ -18,7 +18,8 @@ import { ChannelRepository } from '../../../data/channel/channel.repo';
 const container = new Container({ skipBaseClassChecks: true });
 
 // bind services
-container.bind<UserService>(UserService).toSelf();
+// container.bind<UserService>(UserService).toSelf();
+container.bind<UserService>(TYPES.UserService).to(UserService);
 container.bind<WalletService>(TYPES.WalletService).to(WalletService);
 container.bind<NubanService>(TYPES.NubanService).to(NubanService);
 

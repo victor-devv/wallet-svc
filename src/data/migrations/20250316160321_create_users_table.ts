@@ -22,8 +22,8 @@ export async function up(knex: Knex): Promise<void> {
       channel: (t) => t.string('channel'),
 
       phone_meta: (t) => t.json('phone_meta'),
-      devices: (t) => t.json('devices').notNullable(),
-      device_id: (t) => t.string('device_id').notNullable(),
+      devices: (t) => t.json('devices'),
+      device_id: (t) => t.string('device_id'),
       
       email_verified: (t) => t.boolean('email_verified').defaultTo(false),
       kyc_complete: (t) => t.boolean('kyc_complete').defaultTo(false),

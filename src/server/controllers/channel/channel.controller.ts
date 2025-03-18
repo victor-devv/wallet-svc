@@ -10,9 +10,7 @@ import { TYPES } from '@app/common/config/ioc/types';
 import { BaseController } from '../base';
 import { ChannelRepository } from '@app/data/channel';
 
-@controller(
-  '/channel'
-)
+@controller('/channel')
 export default class ChannelController extends BaseController {
   constructor(@inject(TYPES.ChannelRepository) private repo: ChannelRepository) {
     super();

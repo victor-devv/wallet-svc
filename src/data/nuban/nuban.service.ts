@@ -10,10 +10,14 @@ import {
 } from '@app/server/controllers/base';
 import { AccountChannelBlock } from './nuban.model';
 import { NubanRepository } from './nuban.repo';
+import { WalletRepository } from '../wallet';
 
 @injectable()
 export class NubanService {
-  constructor(@inject(TYPES.WalletRepository) private repo: NubanRepository) {}
+  constructor(
+    @inject(TYPES.NubanRepository) private repo: NubanRepository,
+    @inject(TYPES.WalletRepository) private walletrepo: WalletRepository
+  ) {}
 
   async giveNuban(channel: string, trx: Knex.Transaction) {
     const blocks: AccountChannelBlock[] = JSON.parse(
@@ -25,7 +29,7 @@ export class NubanService {
 
     const { min, max } = channelBlock;
 
-    const lastWalletInChannel = await this.repo.getLastChannelWallet(
+    const lastWalletInChannel = await this.walletrepo.getLastWalletForChannel(
       channel,
       trx
     );

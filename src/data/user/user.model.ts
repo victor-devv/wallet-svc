@@ -3,6 +3,7 @@ import { Location } from '../location';
 
 export interface User extends Model {
   // personal details
+  _id?: number;
   first_name: string;
   last_name: string;
   middle_name: string;
@@ -19,7 +20,7 @@ export interface User extends Model {
   account_number?: string;
 
   // passwords
-  password: string;
+  passcode: string;
   transaction_pin: string;
 
   // misc
@@ -34,12 +35,14 @@ export interface User extends Model {
   kyc_complete: boolean;
   account_closed?: boolean;
   deleted_at: Date | null;
+}
 
-  updatePassword: (plainText: string) => Promise<User>;
-  isPasswordValid: (plainText: string) => Promise<Boolean>;
+export interface IUserService {
+  updatePasscode: (user_id: string, plain_text: string) => Promise<User>;
+  isPasscodeValid: (user_id: string, plain_text: string) => Promise<boolean>;
 
-  updatePin: (plainText: string) => Promise<User>;
-  isPinValid: (plainText: string) => Promise<Boolean>;
+  // updatePin: (user_id: string, plain_text: string) => Promise<User>;
+  // isPinValid: (user_id: string, plain_text: string) => Promise<boolean>;
 }
 
 export type Gender = 'male' | 'female';

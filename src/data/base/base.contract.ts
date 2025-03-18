@@ -3,7 +3,7 @@
  */
 export interface Query {
   conditions?: object;
-  projections?: Array<string>;
+  projections?: string | Array<string> | object;
   sort?: Array<string>;
   archived?: boolean | string;
   relations?: any;
@@ -31,9 +31,14 @@ export interface PaginationQuery {
 }
 
 export interface Repository<T> {
-  create(attributes: any): Promise<T>;
-  byID(id: string, projections?: any, archived?: boolean): Promise<T>;
-  byQuery(query: any, projections?: any, archived?: boolean): Promise<T>;
+  create(attributes: any, return_id?: boolean): Promise<T>;
+  byID(
+    id: string,
+    projections?: string | Array<string> | object,
+    archived?: boolean,
+    return_id?: boolean
+  ): Promise<T>;
+  byQuery(query: any, archived?: boolean, return_id?: boolean): Promise<T>;
   list(query: PaginationQuery): Promise<QueryResult<T>>;
   all(query: Query): Promise<T[]>;
   update(condition: string | object, update: any): Promise<T>;
