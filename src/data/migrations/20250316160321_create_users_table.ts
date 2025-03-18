@@ -11,7 +11,7 @@ export async function up(knex: Knex): Promise<void> {
       dob: (t) => t.string('dob').notNullable(),
       phone_number: (t) => t.string('phone_number').notNullable().unique(),
       email: (t) => t.string('email').notNullable().unique(),
-      passcode: (t) => t.string('passcode').notNullable(),
+      password: (t) => t.string('password').notNullable(),
       bvn: (t) => t.string('bvn').unique(),
       selfie: (t) => t.string('selfie'),
       profile_picture: (t) => t.string('profile_picture'),

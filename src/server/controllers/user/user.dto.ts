@@ -25,7 +25,7 @@ export interface SignupDTO {
   email?: string;
   phone_number: string;
   dob?: Date;
-  passcode: string;
+  password: string;
   location?: Location;
   emergency_phone_number?: string;
   profile_picture?: string;

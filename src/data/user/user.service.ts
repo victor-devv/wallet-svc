@@ -14,12 +14,11 @@ import {
   CountryNotSupportedError
 } from '@app/server/controllers/base';
 import { PHONE_CODES } from '@app/data/base/constants';
-import { SignupDTO } from '@app/server/controllers/user/user.dto';
+import { SignupDTO, LoginDTO } from '@app/server/controllers/user/user.dto';
 import { sanitiseGmailAddress } from '@app/common/utils/misc';
 import {
-  //   OTPRateLimiterService,
-  PasscodeRateLimiterService
-  //   PinRateLimiterService
+  PasswordRateLimiterService,
+  PinRateLimiterService
 } from '@app/server/services';
 import { CreateWalletDTO } from '@app/server/controllers/wallet/wallet.dto';
 
@@ -34,25 +33,25 @@ export class UserService implements IUserService {
   ) {}
 
   async register(body: SignupDTO) {
-    await PasscodeRateLimiterService.isAccountClosed(body.phone_number);
-
-    // sanitise gmail addresses & check if already in use
-    if (body.email)
-      body.email = await this.sanitiseAndValidateEmail(body.email);
-
-    const phoneNumber = this.convertLocalToInternational(body.phone_number);
-    const { phone_number, phone_meta } =
-      this.formatAndValidatePhoneNumber(phoneNumber);
-
-    await this.isPhoneNumberUsed(phone_number);
-
-    const passcode = await bcrypt.hash(body.passcode, env.salt_rounds);
-
     const trx = await this.repo.baseKnex.transaction();
 
     try {
+      await PasswordRateLimiterService.isAccountClosed(body.phone_number);
+
+      // sanitise gmail addresses & check if already in use
+      if (body.email)
+        body.email = await this.sanitiseAndValidateEmail(body.email);
+
+      const phoneNumber = this.convertLocalToInternational(body.phone_number);
+      const { phone_number, phone_meta } =
+        this.formatAndValidatePhoneNumber(phoneNumber);
+
+      await this.isPhoneNumberUsed(phone_number);
+
+      const password = await bcrypt.hash(body.password, env.salt_rounds);
+
       const user = await this.repo.create(
-        { ...body, phone_number, passcode, phone_meta },
+        { ...body, phone_number, password, phone_meta },
         true,
         trx
       );
@@ -68,8 +67,11 @@ export class UserService implements IUserService {
         is_verified: false,
         user_id: user._id,
         user_ulid: user.id
-      }
-      const wallet = await this.walletService.createWallet(createWalletBody, trx);
+      };
+      const wallet = await this.walletService.createWallet(
+        createWalletBody,
+        trx
+      );
 
       // updating the nuban here becase we want to be sure the wallet creation is successful
       const updatedUser = await this.repo.update(
@@ -79,35 +81,72 @@ export class UserService implements IUserService {
         trx
       );
 
-      delete updatedUser.passcode;
-      delete updatedUser._id;
-      delete updatedUser.transaction_pin;
-
       await trx.commit();
 
-      return { user: updatedUser, wallet };
+      return { user: this.format(updatedUser), wallet: this.walletService.format(wallet) };
     } catch (error) {
       await trx.rollback();
       throw error;
     }
   }
 
-  async updatePasscode(user_id: string, plain_text: string): Promise<User> {
+  async signIn(body: LoginDTO) {
+    try {
+      let query;
+      let user;
+
+      if (body.phone_number) {
+        const phoneNumber = this.convertLocalToInternational(body.phone_number);
+        query = { phone_number: phoneNumber };
+      } else query = { email: sanitiseGmailAddress(body.email) };
+
+      user = await this.repo.byQuery({
+        conditions: query
+      });
+
+      await PasswordRateLimiterService.isAccountClosed(user.phone_number);
+
+      await PasswordRateLimiterService.isUserLockedOut(user.account_number);
+
+      const isPasswordValid = await this.isPasswordValid(
+        user.password,
+        body.password
+      );
+
+      if (!isPasswordValid)
+        await PasswordRateLimiterService.limit(user.account_number);
+
+      await PasswordRateLimiterService.reset(user.account_number);
+
+      const wallet = await this.walletService.getWallet(user.id);
+
+      const frozen = await PinRateLimiterService.isAccountFrozen(
+        user.account_number
+      );
+
+      const account_access = {
+        account_frozen: !!frozen
+      };
+
+      return { user: this.format(user), wallet: this.walletService.format(wallet), account_access };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updatePassword(user_id: string, plain_text: string): Promise<User> {
     const hash = await bcrypt.hash(plain_text, env.salt_rounds);
 
-    await this.repo.qb.where({ ulid: user_id }).update({ passcode: hash });
+    await this.repo.qb.where({ ulid: user_id }).update({ password: hash });
 
     return await this.repo.byQuery({ conditions: { ulid: user_id } });
   }
 
-  async isPasscodeValid(user_id: string, plain_text: string): Promise<boolean> {
-    const user = await this.repo.qb
-      .where({ ulid: user_id })
-      .select('password')
-      .first();
-
-    if (!user) return false;
-    return await bcrypt.compare(plain_text, user.password);
+  async isPasswordValid(
+    password: string,
+    plain_text: string
+  ): Promise<boolean> {
+    return await bcrypt.compare(plain_text, password);
   }
 
   formatAndValidatePhoneNumber(phone_number: string) {
@@ -197,5 +236,26 @@ export class UserService implements IUserService {
     if (/0[7-9][0-1][0-9]{8}/i.test(phone_number))
       return phone_number.replace('0', '234');
     return phone_number;
+  }
+
+  format(user) {
+    const {
+      _id,
+      password,
+      transaction_pin,
+      email_verified,
+      kyc_complete,
+      kyc_verified,
+      account_closed,
+      ...rest
+    } = user;
+
+    return {
+      ...rest,
+      email_verified: Boolean(email_verified),
+      kyc_complete: Boolean(kyc_complete),
+      kyc_verified: Boolean(kyc_verified),
+      account_closed: Boolean(account_closed)
+    };
   }
 }

@@ -20,7 +20,7 @@ export interface User extends Model {
   account_number?: string;
 
   // passwords
-  passcode: string;
+  password: string;
   transaction_pin: string;
 
   // misc
@@ -38,8 +38,8 @@ export interface User extends Model {
 }
 
 export interface IUserService {
-  updatePasscode: (user_id: string, plain_text: string) => Promise<User>;
-  isPasscodeValid: (user_id: string, plain_text: string) => Promise<boolean>;
+  updatePassword: (user_id: string, plain_text: string) => Promise<User>;
+  isPasswordValid: (user_id: string, plain_text: string) => Promise<boolean>;
 
   // updatePin: (user_id: string, plain_text: string) => Promise<User>;
   // isPinValid: (user_id: string, plain_text: string) => Promise<boolean>;

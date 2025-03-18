@@ -19,12 +19,22 @@ export const signup = joi.object({
   email: joi.string().email().trim(),
   phone_number: joi.string().trim().required(),
   channel: joi.string(),
-  passcode: joi
+  password: joi
     .string()
     .trim()
-    .regex(/[0-9]{4}/)
-    .length(4)
-    .required(),
+    .min(8)
+    .max(32)
+    .pattern(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,32}$/
+    )
+    .required()
+    .messages({
+      'string.pattern.base':
+        'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character.',
+      'string.min': 'Password must be at least 8 characters long.',
+      'string.max': 'Password cannot exceed 32 characters.',
+      'any.required': 'Password is required.'
+    }),
 
   location: LocationValidator,
 
@@ -34,15 +44,13 @@ export const signup = joi.object({
   account_number: joi.string().trim()
 });
 
-export const login = joi.object({
-  phone_number: joi.string().trim().required(),
-  passcode: joi
-    .string()
-    .trim()
-    .regex(/[0-9]{4}/)
-    .length(4)
-    .required()
-});
+export const login = joi
+  .object({
+    email: joi.string().trim(),
+    phone_number: joi.string().trim(),
+    password: joi.string().trim().required()
+  })
+  .or('email', 'phone_number');
 
 export const recoverAccount = joi.object({
   phone_number: joi.string().trim().required()
@@ -62,15 +70,45 @@ export const verifyRecoverAccountOTP = joi.object({
     .required()
 });
 
-export const resetPasscode = joi.object({
+export const resetPassword = joi.object({
   phone_number: joi.string().trim().required(),
-  passcode: joi.string().length(4).trim().required(),
+  password: joi
+    .string()
+    .trim()
+    .min(8)
+    .max(32)
+    .pattern(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,32}$/
+    )
+    .required()
+    .messages({
+      'string.pattern.base':
+        'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character.',
+      'string.min': 'Password must be at least 8 characters long.',
+      'string.max': 'Password cannot exceed 32 characters.',
+      'any.required': 'Password is required.'
+    }),
   token: joi.string().length(6).required(),
   pin_type: joi.string().valid('login', 'transaction')
 });
 
-export const updatePasscode = joi.object({
-  passcode: joi.string().length(4).trim().required()
+export const updatePassword = joi.object({
+  password: joi
+    .string()
+    .trim()
+    .min(8)
+    .max(32)
+    .pattern(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,32}$/
+    )
+    .required()
+    .messages({
+      'string.pattern.base':
+        'Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character.',
+      'string.min': 'Password must be at least 8 characters long.',
+      'string.max': 'Password cannot exceed 32 characters.',
+      'any.required': 'Password is required.'
+    })
 });
 
 export const transactionPin = joi.object({

@@ -10,7 +10,7 @@ export const SchemaFactory = (
 
   // Define the `id` primary key column
   table.increments('id').unsigned().primary();
-  table.string('ulid', 26).unique();
+  table.string('ulid', 26).unique().notNullable();
   
 
   // Apply additional schema fields

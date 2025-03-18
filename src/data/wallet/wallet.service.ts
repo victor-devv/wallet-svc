@@ -188,4 +188,23 @@ export class WalletService {
 
     //NOT IMPLEMENTING TRANSACITON LIMITS AND BALANCE LIMITS AS THIS IS A DEMO WALLET
   }
+
+  format(wallet) {
+    const {
+      _id,
+      user_id,
+      user_ulid,
+      has_funded,
+      is_verified,
+      is_frozen,
+      ...rest
+    } = wallet;
+
+    return {
+      ...rest,
+      has_funded: Boolean(has_funded),
+      is_verified: Boolean(is_verified),
+      is_frozen: Boolean(is_frozen)
+    };
+  }
 }

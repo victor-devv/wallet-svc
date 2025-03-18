@@ -9,18 +9,12 @@ import {
   requestBody
 } from 'inversify-express-utils';
 import gateman from '@app/common/services/gateman';
-import logger from '@app/common/services/logger';
 import { BaseController } from '../base';
 import { default as Validator } from '@app/server/middlewares/validator';
+import { validateAppBuildNumber } from '@app/server/middlewares/validateAppBuildNumber';
 import { TYPES } from '@app/common/config/ioc/types';
-import {
-  // login,
-  signup
-} from './user.validator';
-import {
-  // LoginDTO,
-  SignupDTO,
-} from './user.dto';
+import { login, signup } from './user.validator';
+import { LoginDTO, SignupDTO } from './user.dto';
 import { UserService } from '@app/data/user/user.service';
 
 @controller('/user')
@@ -53,16 +47,35 @@ export default class UserController extends BaseController {
 
       const { user, wallet } = await this.userService.register(body);
 
-      const token = await gateman.createSession({id: user.id});
+      const token = await gateman.createSession({ id: user.id });
 
       const data = { user, wallet, token };
 
       this.handleSuccess(req, res, data);
     } catch (err) {
-      logger.error(err);
       if (!err.message)
         err.message =
           'We encountered an error while processing your request. Please try again.';
+      this.handleError(req, res, err);
+    }
+  }
+
+  /**
+   * Logs the user in using their phone number and password
+   */
+  @httpPost('/login', validateAppBuildNumber, Validator(login))
+  async login(
+    @request() req: Request,
+    @response() res: Response,
+    @requestBody() body: LoginDTO
+  ) {
+    try {
+      const { user, wallet, account_access } = await this.userService.signIn(body);
+
+      const token = await gateman.createSession({ id: user.id });
+
+      this.handleSuccess(req, res, { user, wallet, token, account_access });
+    } catch (err) {
       this.handleError(req, res, err);
     }
   }
