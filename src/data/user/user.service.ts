@@ -12,7 +12,8 @@ import {
   UserExistsError,
   InvalidPhoneNumberError,
   CountryNotSupportedError,
-  FrozenWalletError
+  FrozenWalletError,
+  InvalidUserAgentError
 } from '@app/server/controllers/base';
 import { PHONE_CODES } from '@app/data/base/constants';
 import { SignupDTO, LoginDTO } from '@app/server/controllers/user/user.dto';
@@ -214,6 +215,28 @@ export class UserService implements IUserService {
       .update({ transaction_pin: hash });
 
     return await this.repo.byQuery({ conditions: { ulid: user_id } });
+  }
+
+  async logout(user_id: string, user_agent_header: any) {
+    try {
+      await this.repo.byID(user_id);
+
+      const isIOSClient = /CFNetwork/.test(user_agent_header);
+      const isAndroidClient = /Dalvik/.test(user_agent_header);
+
+      const update = { devices: {} };
+      if (isIOSClient) {
+        update['devices']['ios'] = null;
+      } else if (isAndroidClient) {
+        update['devices']['android'] = null;
+      } else {
+        throw new InvalidUserAgentError();
+      }
+
+      await this.repo.update(user_id, update);
+    } catch (err) {
+      throw err;
+    }
   }
 
   async isPasswordValid(

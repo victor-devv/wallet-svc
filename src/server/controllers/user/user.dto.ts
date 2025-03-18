@@ -10,6 +10,10 @@ export interface LoginDTO {
   phone_number?: string;
 }
 
+export interface LogoutDTO {
+  user_id: string;
+}
+
 export interface CreateAccountPayload {
   user: Partial<User>;
   token: string;

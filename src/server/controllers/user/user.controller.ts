@@ -14,8 +14,13 @@ import { BaseController } from '../base';
 import { default as Validator } from '@app/server/middlewares/validator';
 import { validateAppBuildNumber } from '@app/server/middlewares/validateAppBuildNumber';
 import { TYPES } from '@app/common/config/ioc/types';
-import { login, signup, transactionPin } from './user.validator';
-import { LoginDTO, SignupDTO, UpdatePinDTO as PinDTO } from './user.dto';
+import { login, signup, transactionPin, logout } from './user.validator';
+import {
+  LoginDTO,
+  SignupDTO,
+  UpdatePinDTO as PinDTO,
+  LogoutDTO
+} from './user.dto';
 import { UserService } from '@app/data/user/user.service';
 
 @controller('/user')
@@ -119,6 +124,26 @@ export default class UserController extends BaseController {
       const isPinValid = await this.userService.validatePin(req.user, body.pin);
 
       this.handleSuccess(req, res, isPinValid);
+    } catch (err) {
+      this.handleError(req, res, err);
+    }
+  }
+
+  /**
+   * Logout a user, remove associated device token based on the device logout is triggered from
+   */
+  @httpPost('/logout', gateman.guard(), Validator(logout))
+  async logout(
+    @request() req: Request,
+    @response() res: Response,
+    @requestBody() body: LogoutDTO
+  ) {
+    try {
+      await this.userService.logout(body.user_id, req.headers['user-agent']);
+
+      await gateman.clearSession(body.user_id);
+
+      this.handleSuccess(req, res, { message: 'user logged out' });
     } catch (err) {
       this.handleError(req, res, err);
     }

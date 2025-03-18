@@ -35,6 +35,7 @@ export class TooManyRequestsError extends ControllerError {
 
 /**
  * USER ACCOUNT BASED ERRORS
+ * 3xx Range
  */
 export class UserNotFoundError extends ControllerError {
   constructor(message: string) {
@@ -64,7 +65,7 @@ export class InvalidPasswordError extends ControllerError {
     super(errorMessage);
 
     this.code = HttpStatus.BAD_REQUEST;
-    this.error_code = 305;
+    this.error_code = 302;
   }
 }
 
@@ -75,18 +76,7 @@ export class LockedOutError extends ControllerError {
     super(errorMessage);
 
     this.code = HttpStatus.BAD_REQUEST;
-    this.error_code = 306;
-  }
-}
-
-export class AddressNotSetError extends ControllerError {
-  constructor() {
-    const errorMessage =
-      'Your address is not set. Please set your address first';
-    super(errorMessage);
-
-    this.code = HttpStatus.BAD_REQUEST;
-    this.error_code = 307;
+    this.error_code = 303;
   }
 }
 
@@ -97,7 +87,7 @@ export class TransactionPinBlockedError extends ControllerError {
     super(errorMessage);
 
     this.code = HttpStatus.BAD_REQUEST;
-    this.error_code = 308;
+    this.error_code = 304;
   }
 }
 
@@ -107,7 +97,7 @@ export class InvalidPhoneNumberError extends ControllerError {
     super(errorMessage);
 
     this.code = HttpStatus.BAD_REQUEST;
-    this.error_code = 316;
+    this.error_code = 305;
   }
 }
 
@@ -119,7 +109,7 @@ export class InvalidPinError extends ControllerError {
     super(errorMessage);
 
     this.code = HttpStatus.BAD_REQUEST;
-    this.error_code = 309;
+    this.error_code = 306;
   }
 }
 
@@ -130,7 +120,7 @@ export class PinNotSetError extends ControllerError {
     super(errorMessage);
 
     this.code = HttpStatus.BAD_REQUEST;
-    this.error_code = 310;
+    this.error_code = 307;
   }
 }
 
@@ -140,27 +130,7 @@ export class InvalidTokenError extends ControllerError {
     super(errorMessage);
 
     this.code = HttpStatus.BAD_REQUEST;
-    this.error_code = 312;
-  }
-}
-
-export class SameNumberError extends ControllerError {
-  constructor() {
-    const errorMessage = 'The phone numbers should not be the same';
-    super(errorMessage);
-
-    this.code = HttpStatus.BAD_REQUEST;
-    this.error_code = 313;
-  }
-}
-
-export class ChangeAnotherUserNumberError extends ControllerError {
-  constructor() {
-    const errorMessage = 'You cannot change the number of another user';
-    super(errorMessage);
-
-    this.code = HttpStatus.BAD_REQUEST;
-    this.error_code = 314;
+    this.error_code = 308;
   }
 }
 
@@ -170,7 +140,7 @@ export class AccountBlockRangeInvalidError extends ControllerError {
     super(errorMessage);
 
     this.code = HttpStatus.EXPECTATION_FAILED;
-    this.error_code = 316;
+    this.error_code = 309;
   }
 }
 
@@ -180,7 +150,7 @@ export class AccountBlockRangeOverlapError extends ControllerError {
     super(errorMessage);
 
     this.code = HttpStatus.EXPECTATION_FAILED;
-    this.error_code = 317;
+    this.error_code = 310;
   }
 }
 
@@ -190,7 +160,7 @@ export class AccountBlockCodeUsedError extends ControllerError {
     super(errorMessage);
 
     this.code = HttpStatus.EXPECTATION_FAILED;
-    this.error_code = 318;
+    this.error_code = 311;
   }
 }
 
@@ -201,7 +171,7 @@ export class AccountClosedError extends ControllerError {
     super(errorMessage);
 
     this.code = HttpStatus.FORBIDDEN;
-    this.error_code = 329;
+    this.error_code = 312;
   }
 }
 
@@ -212,7 +182,17 @@ export class AccountRedisLockedError extends ControllerError {
     super(errorMessage);
 
     this.code = HttpStatus.FORBIDDEN;
-    this.error_code = 330;
+    this.error_code = 313;
+  }
+}
+
+export class InvalidUserAgentError extends ControllerError {
+  constructor() {
+    const errorMessage = 'invalid user-agent';
+    super(errorMessage);
+
+    this.code = HttpStatus.BAD_REQUEST;
+    this.error_code = 314;
   }
 }
 
@@ -223,7 +203,7 @@ export class CountryNotSupportedError extends ControllerError {
     super(errorMessage);
 
     this.code = HttpStatus.BAD_REQUEST;
-    this.error_code = 399;
+    this.error_code = 315;
   }
 }
 
@@ -237,6 +217,7 @@ export interface UserNotFoundErrorInterface extends Error {
 
 /**
  * WALLET BASED ERRORS
+ * 1xx Range
  */
 
 /**
