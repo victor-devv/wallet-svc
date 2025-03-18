@@ -9,7 +9,7 @@ import {
   FrozenWalletError,
   InsufficientFundsError
 } from '@app/server/controllers/base';
-import { ModelNotFoundError } from '@app/data/base/errors/repo.errors'
+import { ModelNotFoundError } from '@app/data/base/errors/repo.errors';
 import { Wallet, TransferOptions } from './wallet.model';
 import { WalletRepository } from './wallet.repo';
 import {
@@ -36,7 +36,7 @@ export class WalletService {
     let query = qb.whereNull('deleted_at');
 
     if (typeof id === 'string' && isULID(id)) {
-      qb.client.raw('?? = ? OR ?? = ?', ['ulid', id, 'user_ulid', id])
+      qb.client.raw('?? = ? OR ?? = ?', ['ulid', id, 'user_ulid', id]);
     } else if (typeof id === 'number') {
       query = query.where('user_id', id);
     } else if (isPhoneNumberValid(id)) {

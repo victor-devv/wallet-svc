@@ -11,7 +11,8 @@ import { NubanService } from '@app/data/nuban/nuban.service';
 import {
   UserExistsError,
   InvalidPhoneNumberError,
-  CountryNotSupportedError
+  CountryNotSupportedError,
+  FrozenWalletError
 } from '@app/server/controllers/base';
 import { PHONE_CODES } from '@app/data/base/constants';
 import { SignupDTO, LoginDTO } from '@app/server/controllers/user/user.dto';
@@ -32,6 +33,9 @@ export class UserService implements IUserService {
     @inject(TYPES.NubanService) private nubanService: NubanService
   ) {}
 
+  /**
+   * Creates a user account, generates a nuban and then creates a wallet for the user
+   */
   async register(body: SignupDTO) {
     const trx = await this.repo.baseKnex.transaction();
 
@@ -83,13 +87,19 @@ export class UserService implements IUserService {
 
       await trx.commit();
 
-      return { user: this.format(updatedUser), wallet: this.walletService.format(wallet) };
-    } catch (error) {
+      return {
+        user: this.format(updatedUser),
+        wallet: this.walletService.format(wallet)
+      };
+    } catch (err) {
       await trx.rollback();
-      throw error;
+      throw err;
     }
   }
 
+  /**
+   * Logs in a user: validates provided password, checks account status (account closure, user locked out, account freeze)
+   */
   async signIn(body: LoginDTO) {
     try {
       let query;
@@ -128,20 +138,80 @@ export class UserService implements IUserService {
         account_frozen: !!frozen
       };
 
-      return { user: this.format(user), wallet: this.walletService.format(wallet), account_access };
-    } catch (error) {
-      throw error;
+      return {
+        user: this.format(user),
+        wallet: this.walletService.format(wallet),
+        account_access
+      };
+    } catch (err) {
+      throw err;
     }
   }
 
+  /**
+   * Returns a user account
+   */
   async getUserAccount(id: string) {
     return this.format(await this.repo.byID(id));
+  }
+
+  /**
+   * Sets the user's transaction pin
+   */
+  async setPin(user_id: string, pin: string) {
+    try {
+      const user = await this.repo.byID(user_id);
+
+      await PasswordRateLimiterService.isAccountClosed(user.phone_number);
+      const updatedUser = await this.updatePin(user_id, pin);
+
+      return this.format(updatedUser);
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  /**
+   * Validates the user's transaction pin
+   */
+  async validatePin(user_id: string, pin: string) {
+    try {
+      const user = await this.repo.byID(user_id);
+
+      await PinRateLimiterService.isUserAccountBlocked(user.account_number);
+
+      await PinRateLimiterService.isUserAccountFrozen(user.account_number);
+
+      const wallet = await this.walletService.getWallet(user_id);
+
+      if (wallet.is_frozen) throw new FrozenWalletError();
+
+      const isPinValid = await this.isPasswordValid(user.transaction_pin, pin);
+
+      if (!isPinValid) await PinRateLimiterService.limit(user.account_number);
+
+      await PinRateLimiterService.reset(user.account_number);
+
+      return isPinValid;
+    } catch (err) {
+      throw err;
+    }
   }
 
   async updatePassword(user_id: string, plain_text: string): Promise<User> {
     const hash = await bcrypt.hash(plain_text, env.salt_rounds);
 
     await this.repo.qb.where({ ulid: user_id }).update({ password: hash });
+
+    return await this.repo.byQuery({ conditions: { ulid: user_id } });
+  }
+
+  async updatePin(user_id: string, plain_text: string): Promise<User> {
+    const hash = await bcrypt.hash(plain_text, env.salt_rounds);
+
+    await this.repo.qb
+      .where({ ulid: user_id })
+      .update({ transaction_pin: hash });
 
     return await this.repo.byQuery({ conditions: { ulid: user_id } });
   }

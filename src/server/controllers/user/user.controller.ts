@@ -4,6 +4,7 @@ import {
   controller,
   httpGet,
   httpPost,
+  httpPut,
   request,
   response,
   requestBody
@@ -13,8 +14,8 @@ import { BaseController } from '../base';
 import { default as Validator } from '@app/server/middlewares/validator';
 import { validateAppBuildNumber } from '@app/server/middlewares/validateAppBuildNumber';
 import { TYPES } from '@app/common/config/ioc/types';
-import { login, signup } from './user.validator';
-import { LoginDTO, SignupDTO } from './user.dto';
+import { login, signup, transactionPin } from './user.validator';
+import { LoginDTO, SignupDTO, UpdatePinDTO as PinDTO } from './user.dto';
 import { UserService } from '@app/data/user/user.service';
 
 @controller('/user')
@@ -34,8 +35,7 @@ export default class UserController extends BaseController {
   }
 
   /**
-   * Creates a user account and makes a call to the wallet
-   * service to create a wallet for the user.
+   * Creates a user account and wallet.
    */
   @httpPost('/', Validator(signup))
   async signup(
@@ -71,11 +71,54 @@ export default class UserController extends BaseController {
     @requestBody() body: LoginDTO
   ) {
     try {
-      const { user, wallet, account_access } = await this.userService.signIn(body);
+      const { user, wallet, account_access } = await this.userService.signIn(
+        body
+      );
 
       const token = await gateman.createSession({ id: user.id });
 
       this.handleSuccess(req, res, { user, wallet, token, account_access });
+    } catch (err) {
+      this.handleError(req, res, err);
+    }
+  }
+
+  /**
+   * Sets a users's transaction PIN.
+   * It is expected that a user would set a PIN after the user creation screen in a typical on-boarding flow
+   */
+  @httpPut('/transaction/pin', gateman.guard('user'), Validator(transactionPin))
+  async setTransactionPin(
+    @request() req: Request,
+    @response() res: Response,
+    @requestBody() body: PinDTO
+  ) {
+    try {
+      const updatedUser = await this.userService.setPin(req.user, body.pin);
+
+      this.handleSuccess(req, res, updatedUser);
+    } catch (err) {
+      this.handleError(req, res, err);
+    }
+  }
+
+  /**
+   * Validates a users's transaction PIN.
+   */
+  @httpPost(
+    '/transaction/pin',
+    gateman.guard('user'),
+    Validator(transactionPin)
+  )
+  async validateTransactionPin(
+    @request() req: Request,
+    @response() res: Response,
+    @requestBody() body: PinDTO
+  ) {
+    try {
+      const isPinValid = await this.userService.validatePin(req.user, body.pin);
+
+      this.handleSuccess(req, res, isPinValid);
     } catch (err) {
       this.handleError(req, res, err);
     }

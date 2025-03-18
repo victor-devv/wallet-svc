@@ -15,6 +15,11 @@ export interface CreateAccountPayload {
   token: string;
 }
 
+export interface UpdatePinDTO {
+  pin: string;
+  user?: string;
+}
+
 /**
  * Payload sent for a signup request
  */
