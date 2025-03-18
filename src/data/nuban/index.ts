@@ -1,2 +1,3 @@
 export * from './nuban.model';
-export { default as NubanRepo } from './nuban.repo';
+export * from './nuban.repo';
+export * from './nuban.service';

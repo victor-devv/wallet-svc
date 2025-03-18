@@ -1,4 +1,5 @@
 import { Model } from '../base/base.model';
+import { TransactionCategories, TransactionParticipant } from '@app/data/transaction';
 
 /**
  * Typings for a wallet.
@@ -20,9 +21,17 @@ export interface IWalletService {
   /**
    * Generarates a NUBAN for a wallet
    */
-//   generateNUBAN: () => AccountDetails;
+  //   generateNUBAN: () => AccountDetails;
 
   accountNumber: () => string;
+
+  /**
+   * Transforms a wallet document to a transaction participant, appropriate for logging transactions and creating transfers
+   */
+  toTransactionParticipant: (
+    category?: TransactionCategories,
+    alias_account_number?: string
+  ) => TransactionParticipant;
 }
 
 export interface AccountDetails {
@@ -42,23 +51,23 @@ export interface AccountDetails {
  * Options for wallet to wallet funds transfer
  */
 export interface TransferOptions {
-    /**
-     * Sender ulid
-     */
-    sender: string;
-    /**
-     * Recipient ulid
-     */
-    recipient: string;
-    /**
-     * Amount to transfer
-     */
-    amount: number;
-    /**
-     * Error message prefix if the transfer fails
-     */
-    errorMessagePrefix?: string;
-  }
+  /**
+   * Sender ulid
+   */
+  sender: string;
+  /**
+   * Recipient ulid
+   */
+  recipient: string;
+  /**
+   * Amount to transfer
+   */
+  amount: number;
+  /**
+   * Error message prefix if the transfer fails
+   */
+  errorMessagePrefix?: string;
+}
 
 /**
  * Describes the Data transfer object to delete a user's wallet

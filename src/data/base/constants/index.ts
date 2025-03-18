@@ -45,3 +45,6 @@ export const isPhoneNumberValid = (phoneNumber: string): boolean => {
  */
 export const validNigerianAccountNumber = (accountNumber: string) =>
   /^\d{10}$/.test(accountNumber);
+
+export const isDcAccountNumber = (accountNumber: string) =>
+  /^65[0-9]{8}/i.test(accountNumber) || /^0001[0-9]{6}/i.test(accountNumber);

@@ -8,6 +8,7 @@ import {
   Query,
   QueryResult,
   PaginationQuery,
+  GenericFetchOptions
 } from '.';
 
 @injectable()
@@ -24,6 +25,10 @@ export class BaseRepository<T> implements Repository<T> {
 
   public get baseKnex(): Knex {
     return this.knex;
+  }
+
+  public get tableName(): string {
+    return this.table;
   }
 
   // Shortcut for Query Builder call
@@ -64,7 +69,7 @@ export class BaseRepository<T> implements Repository<T> {
         return await (return_id
           ? qb.where('id', insertId).select('*').select({ _id: 'id' })
           : qb.where('id', insertId).select('*'));
-      else return await this.byID(insertId, '*', false, return_id, trx);
+      else return await this.byID(insertId, { return_id, trx });
     } catch (error) {
       if (
         error.code === 'ER_DUP_ENTRY' ||
@@ -80,23 +85,19 @@ export class BaseRepository<T> implements Repository<T> {
   /**
    * Finds a record by its id
    */
-  async byID(
-    id: number | string,
-    projections: string | Array<string> | object = '*',
-    archived = false,
-    return_id: boolean = false,
-    trx?: Knex.Transaction
-  ): Promise<T> {
+  async byID(id: number | string, options?: GenericFetchOptions): Promise<T> {
     const query = typeof id === 'number' ? { id } : { ulid: id };
 
-    const qb = trx ? trx(this.table) : this.qb;
+    const qb = options?.trx ? options.trx(this.table) : this.qb;
 
     const builder = qb.where(query);
-    if (!archived) builder.whereNull('deleted_at');
+    if (!options?.archived) builder.whereNull('deleted_at');
 
-    const result = await (return_id
-      ? builder.select(projections).select({ _id: 'id' }).first()
-      : builder.select(projections).first());
+    if (!options?.projections) options.projections = '*';
+
+    const result = await (options?.return_id
+      ? builder.select(options.projections).select({ _id: 'id' }).first()
+      : builder.select(options.projections).first());
 
     if (!result) throw new ModelNotFoundError(`${this.name} not found`);
 
@@ -106,22 +107,17 @@ export class BaseRepository<T> implements Repository<T> {
   /**
    * Finds a record by an object query.
    */
-  async byQuery(
-    query: Query,
-    archived: boolean = false,
-    return_id: boolean = false,
-    trx?: Knex.Transaction,
-  ): Promise<T> {
-    const qb = trx ? trx(this.table) : this.qb;
+  async byQuery(query: Query, options?: GenericFetchOptions): Promise<T> {
+    const qb = options?.trx ? options.trx(this.table) : this.qb;
 
     const builder = qb
       .column(query.projections || '*')
       .select()
       .where(query.conditions);
 
-    if (!archived) builder.whereNull('deleted_at');
+    if (!options?.archived) builder.whereNull('deleted_at');
 
-    return await (return_id
+    return await (options?.return_id
       ? builder.select({ _id: 'id' }).first()
       : builder.first());
   }
@@ -129,12 +125,12 @@ export class BaseRepository<T> implements Repository<T> {
   /**
    * Finds all records that match a query
    */
-  async all(query?: Query, return_id: boolean = false): Promise<T[]> {
+  async all(query?: Query, options?: GenericFetchOptions): Promise<T[]> {
     const builder = this.qb
       .select(query?.projections || '*')
       .where(query?.conditions || {});
 
-    if (return_id) builder.select({ _id: 'id' });
+    if (options?.return_id) builder.select({ _id: 'id' });
     if (!query?.archived) builder.whereNull('deleted_at');
     return await builder.orderBy(
       query?.sort?.[0] || 'created_at',
@@ -181,10 +177,9 @@ export class BaseRepository<T> implements Repository<T> {
   async update(
     condition: string | object,
     update: object,
-    return_id: boolean = false,
-    trx?: Knex.Transaction
+    options?: GenericFetchOptions
   ): Promise<T> {
-    const qb = trx ? trx(this.table) : this.qb;
+    const qb = options?.trx ? options.trx(this.table) : this.qb;
 
     const query = this.getQuery(condition);
 
@@ -192,7 +187,7 @@ export class BaseRepository<T> implements Repository<T> {
     if (updatedRows !== 1)
       throw new ModelNotFoundError(`${this.name} not found`);
 
-    return await this.byQuery({ conditions: query }, false, return_id, trx);
+    return await this.byQuery({ conditions: query }, { ...options });
   }
 
   /**
@@ -201,9 +196,9 @@ export class BaseRepository<T> implements Repository<T> {
   async updateAll(
     condition: string | object,
     update: object,
-    trx?: Knex.Transaction
+    options?: GenericFetchOptions
   ): Promise<boolean> {
-    const qb = trx ? trx(this.table) : this.qb;
+    const qb = options?.trx ? options.trx(this.table) : this.qb;
 
     const query = this.getQuery(condition);
     await qb.where(query).update(update);

@@ -21,14 +21,9 @@ export class WalletRepository extends BaseRepository<Wallet> {
 
   async getLastWalletForChannel(channel: string, trx: Knex.Transaction) {
     return await trx(this.table)
-      .whereRaw('JSON_UNQUOTE(JSON_EXTRACT(??, "$.user.channel")) = ?', [
-        'account',
-        channel
-      ])
-      .orderByRaw('JSON_UNQUOTE(JSON_EXTRACT(??, "$.account.nuban")) DESC', [
-        'account'
-      ])
+      .join('users', 'users.id', '=', `${this.table}.user_id`)
+      .where('users.channel', channel)
+      .orderBy('nuban', 'desc')
       .first();
   }
- 
 }

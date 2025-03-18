@@ -21,7 +21,7 @@ import {
   UpdatePinDTO as PinDTO,
   LogoutDTO
 } from './user.dto';
-import { UserService } from '@app/data/user/user.service';
+import { UserService } from '@app/data/user';
 
 @controller('/user')
 export default class UserController extends BaseController {

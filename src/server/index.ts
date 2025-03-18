@@ -8,6 +8,7 @@ import logger from '@app/common/services/logger/logger';
 import redis from '@app/common/services/redis';
 import { App } from './app';
 import db from './db';
+import { setupCoreWallets } from '@app/data/core_wallet';
 
 const start = async () => {
   try {
@@ -18,7 +19,8 @@ const start = async () => {
     redis.init();
     await db.init();
     
-
+    await setupCoreWallets();
+    
     httpServer.listen(env.port);
     httpServer.on('listening', () =>
       logger.message(

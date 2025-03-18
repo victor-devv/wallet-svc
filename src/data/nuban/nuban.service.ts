@@ -8,8 +8,7 @@ import {
   ChannelNotFoundError,
   NubanRangeError
 } from '@app/server/controllers/base';
-import { AccountChannelBlock } from './nuban.model';
-import { NubanRepository } from './nuban.repo';
+import { AccountChannelBlock, NubanRepository } from '.';
 import { WalletRepository } from '../wallet';
 
 @injectable()
@@ -47,5 +46,17 @@ export class NubanService {
     const account_number = padStart(`${min + nextNubanSerial}`, 9, '0');
 
     return await this.repo.createNuban(account_number, trx);
+  }
+
+  async updateNubanAssignment(
+    id: string,
+    wallet_id: number,
+    trx: Knex.Transaction
+  ) {
+    return await this.repo.update(
+      { ulid: id },
+      { assigned_to: wallet_id },
+      { trx }
+    );
   }
 }

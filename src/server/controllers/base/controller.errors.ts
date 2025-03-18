@@ -1,4 +1,5 @@
 import HttpStatus from 'http-status-codes';
+import { CORE_WALLETS } from '@app/data/core_wallet';
 
 export class ControllerError extends Error {
   code: number;
@@ -281,5 +282,14 @@ export class ChannelNotFoundError extends ControllerError {
 export class NubanRangeError extends ControllerError {
   constructor() {
     super('Nuban generated will be out of range', HttpStatus.BAD_REQUEST, 105);
+  }
+}
+
+/**
+ * Sets the HTTP status code to 404 `Not Found` when a core wallet is not found
+ */
+export class CoreWalletNotFoundError extends ControllerError {
+  constructor() {
+    super(`Type has to be one of ${CORE_WALLETS}`, HttpStatus.NOT_FOUND, 106);
   }
 }

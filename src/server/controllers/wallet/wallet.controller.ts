@@ -8,11 +8,11 @@ import {
   response,
   requestBody
 } from 'inversify-express-utils';
+import { TYPES } from '@app/common/config/ioc/types';
 import gateman from '@app/common/services/gateman';
 import { BaseController } from '../base';
 import { default as Validator } from '@app/server/middlewares/validator';
-import { TYPES } from '@app/common/config/ioc/types';
-import { WalletService } from '@app/data/wallet/wallet.service';
+import { WalletService } from '@app/data/wallet';
 import { fundWallet } from './wallet.validator';
 import { FundWalletDTO, FreezeWalletDTO } from './wallet.dto';
 

@@ -1,4 +1,9 @@
 export const TYPES = {
+  TransactionService: Symbol.for('TransactionService'),
+  TransactionRepository: Symbol.for('TransactionRepository'),
+  TransferService: Symbol.for('TransferService'),
+  TransferRepository: Symbol.for('TransferRepository'),
+  CoreWalletRepository: Symbol.for('CoreWalletRepository'),
   ChannelRepository: Symbol.for('ChannelRepository'),
   NubanService: Symbol.for('NubanService'),
   NubanRepository: Symbol.for('NubanRepository'),

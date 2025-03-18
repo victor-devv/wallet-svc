@@ -1,4 +1,3 @@
-export const SMS_CHARGE = 275;
 export const UNTRACKED_DEBIT_TYPES = Object.freeze(['fee']);
 
 /**

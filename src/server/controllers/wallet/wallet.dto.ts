@@ -6,7 +6,7 @@ import { AccountDetails } from '@app/data/wallet/wallet.model';
 export interface CreateWalletDTO {
   is_frozen: boolean;
   is_verified: boolean;
-  account: AccountDetails;
+  account: Partial<AccountDetails>;
   nuban: string;
   user_id: number;
   user_ulid: string;

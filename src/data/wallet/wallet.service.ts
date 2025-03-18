@@ -10,18 +10,22 @@ import {
   InsufficientFundsError
 } from '@app/server/controllers/base';
 import { ModelNotFoundError } from '@app/data/base/errors/repo.errors';
-import { Wallet, TransferOptions } from './wallet.model';
-import { WalletRepository } from './wallet.repo';
+import {
+  isPhoneNumberValid,
+  validNigerianAccountNumber
+} from '@app/data/base/constants';
+import {
+  Wallet,
+  TransferOptions,
+  WalletRepository,
+  WalletDebitType,
+  UNTRACKED_DEBIT_TYPES
+} from '.';
 import {
   CreateWalletDTO,
   FundWalletDTO,
   FreezeWalletDTO
 } from '@app/server/controllers/wallet/wallet.dto';
-import {
-  isPhoneNumberValid,
-  validNigerianAccountNumber
-} from '@app/data/base/constants';
-import { WalletDebitType, UNTRACKED_DEBIT_TYPES } from './wallet.constants';
 
 @injectable()
 export class WalletService {
@@ -32,12 +36,12 @@ export class WalletService {
    * number or user ulid
    * @param id Wallet ulid or user's phone number or user ulid
    */
-  walletQuery(id: string | number) {
-    const qb = this.repo.qb;
+  walletQuery(id: string | number, trx?: Knex.Transaction) {
+    const qb = trx ? trx(this.repo.tableName) : this.repo.qb;
     let query = qb.whereNull('deleted_at');
 
     if (typeof id === 'string' && isULID(id)) {
-      qb.client.raw('?? = ? OR ?? = ?', ['ulid', id, 'user_ulid', id]);
+      query = query.where('ulid', id).orWhere('user_ulid', id);
     } else if (typeof id === 'number') {
       query = query.where('user_id', id);
     } else if (isPhoneNumberValid(id)) {
@@ -45,10 +49,7 @@ export class WalletService {
         .join('users', 'users.id', 'wallets.user_id')
         .where('users.phone_number', id);
     } else if (validNigerianAccountNumber(id)) {
-      query = query.whereRaw(
-        'JSON_UNQUOTE(JSON_EXTRACT(??, "$.account.nuban")) = ?',
-        ['account', id]
-      );
+      query = query.where('nuban', id);
     }
 
     return query;
@@ -60,7 +61,7 @@ export class WalletService {
    * @param body Request body for creating a wallet
    */
   async createWallet(body: CreateWalletDTO, trx: Knex.Transaction) {
-    return await this.repo.create(body, false, trx);
+    return await this.repo.create(body, true, trx);
   }
 
   /**
@@ -69,11 +70,14 @@ export class WalletService {
    * @param useWalletError Whether to throw a `WalletNotFoundError` if the wallet does not exist. Defaults to `false` and throws a `ModelNotFoundError` if the wallet is not found
    * @param errorMessage Error message to be used if the wallet does not exist
    */
-  async getWallet(id: string, useWalletError = false, errorMessage?: string) {
+  async getWallet(
+    id: string,
+    useWalletError = false,
+    errorMessage?: string,
+    trx?: Knex.Transaction
+  ) {
     if (!id) throw new WalletNotFoundError(errorMessage || id);
-
-    const query = this.walletQuery(id);
-    const wallet = await query.first();
+    const wallet = await this.walletQuery(id).first();
 
     if (wallet) return wallet;
     if (useWalletError) throw new WalletNotFoundError(errorMessage || id);
@@ -100,9 +104,7 @@ export class WalletService {
    * @param errorMessage Optional error message to be thrown if the wallet is not found
    */
   async creditWallet(id: string, amount: number) {
-    const query = this.walletQuery(id);
-
-    await query.increment({
+    await this.walletQuery(id).increment({
       balance: amount,
       ledger_balance: amount
     });
@@ -123,16 +125,15 @@ export class WalletService {
    * @param errorMessage Optional error message to be thrown if the wallet is not found
    */
   async debitWallet(id: string, amount: number, errorMessage?: string) {
-    const query = this.walletQuery(id)
+    await this.walletQuery(id)
       .where('balance', '>=', amount)
-      .where('ledger_balance', '>=', amount);
+      .where('ledger_balance', '>=', amount)
+      .increment({
+        balance: -amount,
+        ledger_balance: -amount
+      });
 
-    await query.increment({
-      balance: -amount,
-      ledger_balance: -amount
-    });
-
-    const wallet = query.first();
+    const wallet = await this.walletQuery(id).first();
     if (!wallet) throw new WalletNotFoundError(errorMessage || id);
 
     return wallet;
@@ -144,9 +145,8 @@ export class WalletService {
    * @param channel User's wallet channel
    */
   async freezeOrUnfreezeUserWallet(body: FreezeWalletDTO) {
-    const query = this.walletQuery(body.user);
     const is_frozen = body.action === 'freeze' ? true : false;
-    await query.update({ is_frozen });
+    await this.walletQuery(body.user).update({ is_frozen });
 
     const wallet = await this.walletQuery(body.user).first();
     return this.format(wallet);
@@ -156,7 +156,7 @@ export class WalletService {
    * Transfers money between wallets
    * @param options Options for the transfer
    */
-  async transfer(options: TransferOptions) {
+  async transfer(options: TransferOptions, trx?: Knex.Transaction) {
     const { amount, errorMessagePrefix } = options;
     const sender = await this.getWallet(options.sender, true);
     const recipient = await this.getWallet(options.recipient, true);
@@ -173,7 +173,7 @@ export class WalletService {
 
     const updatedSender = await this.debitWallet(sender.id, amount);
     const updatedRecipient = await this.creditWallet(recipient.id, amount);
-    return { sender: updatedSender, recipient: updatedRecipient };
+    return { senderWallet: updatedSender, recipientWallet: updatedRecipient };
   }
 
   /**

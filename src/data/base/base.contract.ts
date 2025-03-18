@@ -1,3 +1,5 @@
+import { Knex } from 'knex';
+
 /**
  * A repository query
  */
@@ -7,6 +9,13 @@ export interface Query {
   sort?: Array<string>;
   archived?: boolean | string;
   relations?: any;
+}
+
+export interface GenericFetchOptions {
+  projections?: string | Array<string> | object;
+  archived?: boolean | string;
+  return_id?: boolean | string; //returns the original id (not ulid [public id]) of the record(s) if true
+  trx?: Knex.Transaction;
 }
 
 export interface QueryResult<T> {
@@ -32,17 +41,20 @@ export interface PaginationQuery {
 
 export interface Repository<T> {
   create(attributes: any, return_id?: boolean): Promise<T>;
-  byID(
-    id: string,
-    projections?: string | Array<string> | object,
-    archived?: boolean,
-    return_id?: boolean
-  ): Promise<T>;
-  byQuery(query: any, archived?: boolean, return_id?: boolean): Promise<T>;
+  byID(id: string, options?: GenericFetchOptions): Promise<T>;
+  byQuery(query: any, options?: GenericFetchOptions): Promise<T>;
   list(query: PaginationQuery): Promise<QueryResult<T>>;
   all(query: Query): Promise<T[]>;
-  update(condition: string | object, update: any): Promise<T>;
-  updateAll(condition: string | object, update: any): Promise<boolean>;
+  update(
+    condition: string | object,
+    update: any,
+    options?: GenericFetchOptions
+  ): Promise<T>;
+  updateAll(
+    condition: string | object,
+    update: any,
+    options?: GenericFetchOptions
+  ): Promise<boolean>;
   remove(condition: string | object): Promise<boolean>;
   destroy(condition: string | object): Promise<boolean>;
 }

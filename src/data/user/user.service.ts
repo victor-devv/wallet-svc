@@ -4,10 +4,10 @@ import { PhoneNumberUtil } from 'google-libphonenumber';
 import env from '@app/common/config/env/env';
 import logger from '@app/common/services/logger';
 import { TYPES } from '@app/common/config/ioc/types';
-import { UserRepository } from './user.repo';
-import { User, IUserService } from './user.model';
-import { WalletService } from '@app/data/wallet/wallet.service';
-import { NubanService } from '@app/data/nuban/nuban.service';
+import { sanitiseGmailAddress } from '@app/common/utils/misc';
+import { User, UserRepository, IUserService } from '.';
+import { WalletService } from '@app/data/wallet';
+import { NubanService } from '@app/data/nuban';
 import {
   UserExistsError,
   InvalidPhoneNumberError,
@@ -17,12 +17,12 @@ import {
 } from '@app/server/controllers/base';
 import { PHONE_CODES } from '@app/data/base/constants';
 import { SignupDTO, LoginDTO } from '@app/server/controllers/user/user.dto';
-import { sanitiseGmailAddress } from '@app/common/utils/misc';
 import {
   PasswordRateLimiterService,
   PinRateLimiterService
 } from '@app/server/services';
 import { CreateWalletDTO } from '@app/server/controllers/wallet/wallet.dto';
+import { GenericFetchOptions } from '@app/data/base';
 
 @injectable()
 export class UserService implements IUserService {
@@ -64,17 +64,27 @@ export class UserService implements IUserService {
       //create nuban
       const account = await this.nubanService.giveNuban(body.channel, trx);
 
+      const { assigned_to, created_at, updated_at, deleted_at, ...acc } =
+        account;
+
       //create wallet
       const createWalletBody: CreateWalletDTO = {
-        account,
+        account: acc,
         nuban: account.nuban,
         is_frozen: false,
         is_verified: false,
         user_id: user._id,
         user_ulid: user.id
       };
+
       const wallet = await this.walletService.createWallet(
         createWalletBody,
+        trx
+      );
+
+      await this.nubanService.updateNubanAssignment(
+        account.id,
+        wallet._id,
         trx
       );
 
@@ -82,8 +92,7 @@ export class UserService implements IUserService {
       const updatedUser = await this.repo.update(
         { id: user._id },
         { account_number: wallet.account.nuban },
-        false,
-        trx
+        { trx }
       );
 
       await trx.commit();
@@ -152,8 +161,13 @@ export class UserService implements IUserService {
   /**
    * Returns a user account
    */
-  async getUserAccount(id: string) {
-    return this.format(await this.repo.byID(id));
+  async getUserAccount(
+    id: string,
+    format: boolean = true,
+    options?: GenericFetchOptions
+  ) {
+    const user = await this.repo.byID(id, { ...options });
+    return format ? this.format(user) : user;
   }
 
   /**
