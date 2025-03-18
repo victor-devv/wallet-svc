@@ -14,6 +14,7 @@ import { Wallet, TransferOptions } from './wallet.model';
 import { WalletRepository } from './wallet.repo';
 import {
   CreateWalletDTO,
+  FundWalletDTO,
   FreezeWalletDTO
 } from '@app/server/controllers/wallet/wallet.dto';
 import {
@@ -79,6 +80,19 @@ export class WalletService {
     throw new ModelNotFoundError(errorMessage || 'Wallet not found');
   }
 
+  async fundWallet(body: FundWalletDTO) {
+    try {
+      const wallet = await this.creditWallet(body.user, body.amount);
+
+      //Todo: Log transaction
+      // const transaction = await TransactionLogger.fund(body, wallet);
+
+      return this.format(wallet);
+    } catch (err) {
+      throw err;
+    }
+  }
+
   /**
    * Credits a wallet with a specified amount.
    * @param id Wallet id or user's phone number or user id
@@ -93,8 +107,11 @@ export class WalletService {
       ledger_balance: amount
     });
 
-    const wallet = query.first();
+    const wallet = await this.walletQuery(id).first();
     if (!wallet) throw new WalletNotFoundError(id);
+
+    if (!wallet.has_funded)
+      return await this.walletQuery(id).update({ has_funded: true });
 
     return wallet;
   }
