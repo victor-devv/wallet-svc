@@ -134,6 +134,10 @@ export class UserService implements IUserService {
     }
   }
 
+  async getUserAccount(id: string) {
+    return this.format(await this.repo.byID(id));
+  }
+
   async updatePassword(user_id: string, plain_text: string): Promise<User> {
     const hash = await bcrypt.hash(plain_text, env.salt_rounds);
 
@@ -238,7 +242,7 @@ export class UserService implements IUserService {
     return phone_number;
   }
 
-  format(user) {
+  format(user: User): Partial<User> {
     const {
       _id,
       password,

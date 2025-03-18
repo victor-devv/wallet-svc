@@ -189,7 +189,7 @@ export class WalletService {
     //NOT IMPLEMENTING TRANSACITON LIMITS AND BALANCE LIMITS AS THIS IS A DEMO WALLET
   }
 
-  format(wallet) {
+  format(wallet: Wallet): Partial<Wallet> {
     const {
       _id,
       user_id,

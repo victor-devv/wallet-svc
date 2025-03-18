@@ -23,10 +23,11 @@ export default class UserController extends BaseController {
     super();
   }
 
-  @httpGet('/')
+  @httpGet('/', gateman.guard('user'))
   async getUser(@request() req: Request, @response() res: Response) {
     try {
-      this.handleSuccess(req, res, 'hello world');
+      const user = await this.userService.getUserAccount(req.user);
+      this.handleSuccess(req, res, user);
     } catch (err) {
       this.handleError(req, res, err);
     }

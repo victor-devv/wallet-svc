@@ -3,7 +3,6 @@ import { Location } from '../location';
 
 export interface User extends Model {
   // personal details
-  _id?: number;
   first_name: string;
   last_name: string;
   middle_name: string;
@@ -30,7 +29,7 @@ export interface User extends Model {
   device_id: string;
 
   // user account flags
-  is_verified: boolean;
+  kyc_verified: boolean;
   email_verified: boolean;
   kyc_complete: boolean;
   account_closed?: boolean;
