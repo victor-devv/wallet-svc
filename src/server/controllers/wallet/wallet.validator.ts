@@ -20,8 +20,3 @@ export const fundWallet = joi.object({
   reference: trimmedRequiredString,
   source: trimmedRequiredString
 });
-
-export const FreezeWallet = {
-  user: trimmedRequiredString,
-  action: trimmedRequiredString.valid('freeze', 'unfreeze')
-};

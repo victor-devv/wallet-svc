@@ -14,7 +14,7 @@ import { default as Validator } from '@app/server/middlewares/validator';
 import { TYPES } from '@app/common/config/ioc/types';
 import { WalletService } from '@app/data/wallet/wallet.service';
 import { fundWallet } from './wallet.validator';
-import { FundWalletDTO } from './wallet.dto';
+import { FundWalletDTO, FreezeWalletDTO } from './wallet.dto';
 
 @controller('/wallet')
 export default class WalletController extends BaseController {
@@ -41,9 +41,9 @@ export default class WalletController extends BaseController {
   }
 
   /**
-   * Funds a wallet. 
+   * Funds a wallet.
    * This should be a back office action ideally. But this would be left open to users for demo purposes
-   * 
+   *
    * NOTE: Balances are received and stored in kobo
    */
   @httpPost('/fund', gateman.guard('user'), Validator(fundWallet))
@@ -53,8 +53,50 @@ export default class WalletController extends BaseController {
     @requestBody() body: FundWalletDTO
   ) {
     try {
-        body.user = req.user;
+      body.user = req.user;
       const wallet = await this.walletService.fundWallet(body);
+      this.handleSuccess(req, res, wallet);
+    } catch (err) {
+      this.handleError(req, res, err);
+    }
+  }
+
+  /**
+   * Freezes or unfreezes a wallet
+   *
+   * Should also be a back office action, but we will open this up to the user for demo purposes
+   */
+  @httpPost('/freeze', gateman.guard('user'))
+  async freezeWallet(
+    @request() req: Request,
+    @response() res: Response,
+    @requestBody() body: FreezeWalletDTO
+  ) {
+    try {
+      body.user = req.user;
+      body.action = 'freeze';
+      const wallet = await this.walletService.freezeOrUnfreezeUserWallet(body);
+      this.handleSuccess(req, res, wallet);
+    } catch (err) {
+      this.handleError(req, res, err);
+    }
+  }
+
+  /**
+   * Unfreezes or unfreezes a wallet
+   *
+   * Should also be a back office action, but we will open this up to the user for demo purposes
+   */
+  @httpPost('/unfreeze', gateman.guard('user'))
+  async unfreezeWallet(
+    @request() req: Request,
+    @response() res: Response,
+    @requestBody() body: FreezeWalletDTO
+  ) {
+    try {
+      body.user = req.user;
+      body.action = 'unfreeze';
+      const wallet = await this.walletService.freezeOrUnfreezeUserWallet(body);
       this.handleSuccess(req, res, wallet);
     } catch (err) {
       this.handleError(req, res, err);

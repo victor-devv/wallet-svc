@@ -143,13 +143,13 @@ export class WalletService {
    * @param id Wallet id or user's phone number or user id
    * @param channel User's wallet channel
    */
-  freezeOrUnfreezeUserWallet(body: FreezeWalletDTO) {
+  async freezeOrUnfreezeUserWallet(body: FreezeWalletDTO) {
     const query = this.walletQuery(body.user);
     const is_frozen = body.action === 'freeze' ? true : false;
-    query.update({ is_frozen });
+    await query.update({ is_frozen });
 
-    const wallet = query.first();
-    return wallet;
+    const wallet = await this.walletQuery(body.user).first();
+    return this.format(wallet);
   }
 
   /**
