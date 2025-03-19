@@ -20,6 +20,9 @@ export class TransferService {
     const trx = await this.repo.baseKnex.transaction();
 
     try {
+      await this.userService.validatePin(user, body.pin);
+      delete body.pin;
+      
       const { senderWallet, recipientWallet } =
         await this.walletService.transfer({
           sender: user,
@@ -27,30 +30,37 @@ export class TransferService {
           amount: body.amount
         });
 
-      const sender = await this.userService.getUserAccount(user, false, { return_id: true, trx });
+      const sender = await this.userService.getUserAccount(user, false, {
+        return_id: true,
+        trx
+      });
       const recipient = await this.userService.getUserAccount(
         recipientWallet.user_id,
         false,
         { return_id: true, trx }
       );
 
-      const transfer = await this.repo.create({
-        ...body,
-        type: 'instant_transfer',
-        sender_id: sender._id,
-        recipient_id: recipient._id,
-        sender: this.transactionService.transformToTransactionParticipant(
-          //@ts-ignore
-          sender,
-          senderWallet,
-          body.category
-        ),
-        recipient: this.transactionService.transformToTransactionParticipant(
-          //@ts-ignore
-          recipient,
-          recipientWallet
-        )
-      }, false, trx);
+      const transfer = await this.repo.create(
+        {
+          ...body,
+          type: 'instant_transfer',
+          sender_id: sender._id,
+          recipient_id: recipient._id,
+          sender: this.transactionService.transformToTransactionParticipant(
+            //@ts-ignore
+            sender,
+            senderWallet,
+            body.category
+          ),
+          recipient: this.transactionService.transformToTransactionParticipant(
+            //@ts-ignore
+            recipient,
+            recipientWallet
+          )
+        },
+        false,
+        trx
+      );
 
       //const { reference } = await TransactionLogger.transfer(transfer);
       await trx.commit();

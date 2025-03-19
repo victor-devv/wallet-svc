@@ -21,4 +21,5 @@ export interface TransferDTO {
   recipient: string;
   description: string;
   category?: TransactionCategories;
+  pin: string;
 }

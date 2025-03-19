@@ -93,11 +93,11 @@ export class BaseRepository<T> implements Repository<T> {
     const builder = qb.where(query);
     if (!options?.archived) builder.whereNull('deleted_at');
 
-    if (!options?.projections) options.projections = '*';
+    const projections = options?.projections ?? ['*'];
 
     const result = await (options?.return_id
-      ? builder.select(options.projections).select({ _id: 'id' }).first()
-      : builder.select(options.projections).first());
+      ? builder.select(projections).select({ _id: 'id' }).first()
+      : builder.select(projections).first());
 
     if (!result) throw new ModelNotFoundError(`${this.name} not found`);
 
@@ -111,8 +111,7 @@ export class BaseRepository<T> implements Repository<T> {
     const qb = options?.trx ? options.trx(this.table) : this.qb;
 
     const builder = qb
-      .column(query.projections || '*')
-      .select()
+      .select(query.projections || '*')
       .where(query.conditions);
 
     if (!options?.archived) builder.whereNull('deleted_at');

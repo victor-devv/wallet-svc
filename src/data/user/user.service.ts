@@ -1,5 +1,6 @@
 import { injectable, inject } from 'inversify';
 import bcrypt from 'bcrypt';
+import { isEmpty } from 'lodash';
 import { PhoneNumberUtil } from 'google-libphonenumber';
 import env from '@app/common/config/env/env';
 import logger from '@app/common/services/logger';
@@ -12,8 +13,7 @@ import {
   UserExistsError,
   InvalidPhoneNumberError,
   CountryNotSupportedError,
-  FrozenWalletError,
-  InvalidUserAgentError
+  FrozenWalletError
 } from '@app/server/controllers/base';
 import { PHONE_CODES } from '@app/data/base/constants';
 import { SignupDTO, LoginDTO } from '@app/server/controllers/user/user.dto';
@@ -243,11 +243,10 @@ export class UserService implements IUserService {
         update['devices']['ios'] = null;
       } else if (isAndroidClient) {
         update['devices']['android'] = null;
-      } else {
-        throw new InvalidUserAgentError();
       }
 
-      await this.repo.update(user_id, update);
+      if (!isEmpty(update.devices)) await this.repo.update(user_id, update);
+      return;
     } catch (err) {
       throw err;
     }
