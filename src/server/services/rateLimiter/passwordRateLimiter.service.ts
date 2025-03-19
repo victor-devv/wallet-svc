@@ -1,5 +1,5 @@
 import redis from '@app/common/services/redis';
-import { 
+import {
   DAILY_FAILED_LOGIN_TRIES,
   LOGIN_TRIES_KEY,
   CLOSED_ACCOUNT_KEY,
@@ -52,7 +52,7 @@ class PasswordRateLimiterService {
    */
   private async setLockedOutStatus(account_number: string) {
     const key = `${LOCKED_OUT_KEY}:${account_number}`;
-    await redis.set(key, true, 'EX', DURATION_ONE_DAY);
+    await redis.set(key, 1, 'EX', DURATION_ONE_DAY);
   }
 
   /**

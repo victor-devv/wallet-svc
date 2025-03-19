@@ -7,15 +7,9 @@ export async function up(knex: Knex): Promise<void> {
       account_number: (t) => t.string('account_number').notNullable(),
       check_digit: (t) => t.string('check_digit').notNullable(),
       bank_code: (t) => t.string('bank_code').notNullable(),
-      nuban: (t) => t.integer('nuban').unsigned(),
-      assigned_to: (t) => t.string('assigned_to')
+      nuban: (t) => t.string('nuban').notNullable(),
+      assigned_to: (t) => t.integer('assigned_to').unsigned()
     });
-
-    table
-      .foreign('assigned_to')
-      .references('id')
-      .inTable('wallets')
-      .onDelete('CASCADE');
   });
 }
 

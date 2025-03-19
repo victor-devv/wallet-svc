@@ -110,15 +110,17 @@ export class BaseRepository<T> implements Repository<T> {
   async byQuery(query: Query, options?: GenericFetchOptions): Promise<T> {
     const qb = options?.trx ? options.trx(this.table) : this.qb;
 
-    const builder = qb
-      .select(query.projections || '*')
-      .where(query.conditions);
+    const builder = qb.select(query.projections || '*').where(query.conditions);
 
     if (!options?.archived) builder.whereNull('deleted_at');
 
-    return await (options?.return_id
+    const result = await (options?.return_id
       ? builder.select({ _id: 'id' }).first()
       : builder.first());
+
+    if (!result) throw new ModelNotFoundError(`${this.name} not found`);
+
+    return result;
   }
 
   /**
@@ -140,9 +142,7 @@ export class BaseRepository<T> implements Repository<T> {
   /**
    * Same as `all()` but returns paginated results.
    */
-  async list(
-    query: PaginationQuery
-  ): Promise<QueryResult<T>> {
+  async list(query: PaginationQuery): Promise<QueryResult<T>> {
     const page = Number(query.page) - 1 || 0;
     const per_page = Number(query.per_page) || 20;
     const offset = page * per_page;

@@ -100,6 +100,10 @@ export class RedisService {
     return this.redis.keys(pattern);
   }
 
+  async flushall(): Promise<any> {
+    return this.redis.flushAll();
+  }
+
   async set(
     key: string,
     value: any,

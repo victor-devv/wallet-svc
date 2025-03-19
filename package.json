@@ -14,7 +14,7 @@
     "start:debug": "nodemon --inspect ./dist/server | bunyan",
     "watch:tsc": "rm -rf ./dist && tsc --watch -p ./tsconfig.json",
     "build:tsc": "rm -rf ./dist && tsc -p ./tsconfig.json",
-    "test": "rm -f logs.json && NODE_ENV=test jest --runInBand --forceExit --verbose",
+    "test": "rm -f logs.json && source .env && NODE_ENV=test DB_NAME=${DB_NAME}_test jest --runInBand --forceExit --verbose",
     "seed": "node seed",
     "make:migration": "source .env && npx knex --knexfile ./src/common/config/db/knexfile.ts migrate:make -x ts",
     "migrate:up": "source .env && npx knex --knexfile ./src/common/config/db/knexfile.ts migrate:latest",
@@ -52,12 +52,14 @@
     "ulidx": "^2.4.1"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.6.0",
     "@tsconfig/node-lts": "^22.0.1",
     "@types/bcrypt": "^5.0.2",
     "@types/bunyan": "^1.8.11",
     "@types/cors": "^2.8.17",
     "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.0",
+    "@types/faker": "^6.6.11",
     "@types/jest": "^29.5.14",
     "@types/joi": "^17.2.3",
     "@types/jsonwebtoken": "^9.0.9",
