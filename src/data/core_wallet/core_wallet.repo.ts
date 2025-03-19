@@ -27,13 +27,12 @@ export class CoreWalletRepository extends BaseRepository<CoreWallet> {
    * @param amount the amount to be credited
    */
   async creditCoreWallet(payload: FundCoreWalletDTO) {
-    const query = await this.qb
+    await this.qb
       .whereNull('deleted_at')
-      .where({ type: payload.type });
-
-    await query.increment({
-      balance: payload.amount
-    });
+      .where({ type: payload.type })
+      .increment({
+        balance: payload.amount
+      });
 
     const coreWallet = await this.qb
       .whereNull('deleted_at')
@@ -49,13 +48,12 @@ export class CoreWalletRepository extends BaseRepository<CoreWallet> {
    * @param amount the amount to be debited
    */
   async debitCoreWallet(payload: FundCoreWalletDTO) {
-    const query = await this.qb
+    await this.qb
       .whereNull('deleted_at')
-      .where({ type: payload.type });
-
-    await query.increment({
-      balance: -payload.amount
-    });
+      .where({ type: payload.type })
+      .increment({
+        balance: -payload.amount
+      });
 
     const coreWallet = await this.qb
       .whereNull('deleted_at')
@@ -81,5 +79,4 @@ export async function setupCoreWallets() {
       missingCoreWallets.map((type) => ({ ulid: ulid(), type }))
     );
   }
-
 }

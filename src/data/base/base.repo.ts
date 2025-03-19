@@ -141,8 +141,7 @@ export class BaseRepository<T> implements Repository<T> {
    * Same as `all()` but returns paginated results.
    */
   async list(
-    query: PaginationQuery,
-    return_id: boolean = false
+    query: PaginationQuery
   ): Promise<QueryResult<T>> {
     const page = Number(query.page) - 1 || 0;
     const per_page = Number(query.per_page) || 20;

@@ -32,8 +32,8 @@ type TransactionIntent = typeof transactionIntent[number];
  * A user involved in a transaction. Could be a `recipient` or `sender`.
  */
 export interface TransactionUser {
-  id: string;
-  _id?: string;
+  id: number;
+  _id?: number;
   ulid: string;
   first_name: string;
   last_name: string;
@@ -45,7 +45,22 @@ export interface TransactionUser {
   wallet_balance: number;
   wallet_ledger_balance: number;
   bank_code?: string;
-  category: string;
+  category?: string;
+}
+
+export interface TransactionParticipant {
+  id: number;
+  _id?: number;
+  ulid: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+  profile_picture?: string;
+  channel: string;
+  account_number: string;
+  wallet_balance: number;
+  wallet_ledger_balance: number;
+  category?: string;
 }
 
 interface Location {
@@ -59,7 +74,7 @@ interface Location {
 export interface Transaction extends Model {
   adapter: string;
   amount: number;
-  currency: string;
+  currency?: string;
   intent: TransactionIntent;
   reference: string;
   description: string;
@@ -68,32 +83,30 @@ export interface Transaction extends Model {
   status: TransactionStatus;
   sender: TransactionUser;
   recipient: TransactionUser;
-  recipient_category: string;
-  sender_category: string;
-  device_uuid: string;
-  location: Location;
-  user_agent: string;
+  recipient_category?: string;
+  sender_category?: string;
+  device_uuid?: string;
+  location?: Location;
+  user_agent?: string;
 }
 
-export interface TransactionParticipant {
-  id: string;
-  ulid: string;
-  sms_fee?: number;
-  channel?: string;
-  last_name: string;
-  category?: string;
-  first_name: string;
-  phone_number: string;
-  account_number?: string;
-  business_name?: string;
-  wallet_balance?: number;
-  profile_picture?: string;
-  wallet_ledger_balance?: number;
-}
-
-export interface TransactionsDateRange {
-  start: Date;
-  end: Date;
+export interface TransactionIns {
+  adapter: string;
+  amount: number;
+  currency?: string;
+  intent: TransactionIntent;
+  reference: string;
+  description: string;
+  source: TransactionSource;
+  destination: TransactionDestination;
+  status: TransactionStatus;
+  sender: TransactionUser;
+  recipient: TransactionUser;
+  recipient_category?: string;
+  sender_category?: string;
+  device_uuid?: string;
+  location?: Location;
+  user_agent?: string;
 }
 
 export interface TransactionCategory {

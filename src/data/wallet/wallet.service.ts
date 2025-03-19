@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
-import { isValid as isULID } from 'ulidx';
 import { Knex } from 'knex';
+import { ulid } from 'ulidx';
 import { TYPES } from '@app/common/config/ioc/types';
 import {
   WalletNotFoundError,
@@ -11,10 +11,6 @@ import {
 } from '@app/server/controllers/base';
 import { ModelNotFoundError } from '@app/data/base/errors/repo.errors';
 import {
-  isPhoneNumberValid,
-  validNigerianAccountNumber
-} from '@app/data/base/constants';
-import {
   Wallet,
   TransferOptions,
   WalletRepository,
@@ -24,36 +20,21 @@ import {
 import {
   CreateWalletDTO,
   FundWalletDTO,
+  DebitWalletDTO,
   FreezeWalletDTO
 } from '@app/server/controllers/wallet/wallet.dto';
+import { CoreWalletRepository, CoreWalletType } from '@app/data/core_wallet';
+import { TransactionService } from '@app/data/transaction';
 
 @injectable()
 export class WalletService {
-  constructor(@inject(TYPES.WalletRepository) private repo: WalletRepository) {}
-
-  /**
-   * Returns a Knex query object that can be used for getting an existing wallet by either it's ulid, user phone
-   * number or user ulid
-   * @param id Wallet ulid or user's phone number or user ulid
-   */
-  walletQuery(id: string | number, trx?: Knex.Transaction) {
-    const qb = trx ? trx(this.repo.tableName) : this.repo.qb;
-    let query = qb.whereNull('deleted_at');
-
-    if (typeof id === 'string' && isULID(id)) {
-      query = query.where('ulid', id).orWhere('user_ulid', id);
-    } else if (typeof id === 'number') {
-      query = query.where('user_id', id);
-    } else if (isPhoneNumberValid(id)) {
-      query = query
-        .join('users', 'users.id', 'wallets.user_id')
-        .where('users.phone_number', id);
-    } else if (validNigerianAccountNumber(id)) {
-      query = query.where('nuban', id);
-    }
-
-    return query;
-  }
+  constructor(
+    @inject(TYPES.WalletRepository) private repo: WalletRepository,
+    @inject(TYPES.CoreWalletRepository)
+    private coreWalletRepo: CoreWalletRepository,
+    @inject(TYPES.TransactionService)
+    private transactionService: TransactionService
+  ) {}
 
   /**
    * Creates a wallet, also creates wallets limits for the account
@@ -77,16 +58,20 @@ export class WalletService {
     trx?: Knex.Transaction
   ) {
     if (!id) throw new WalletNotFoundError(errorMessage || id);
-    const wallet = await this.walletQuery(id).first();
+    const wallet = await this.repo.walletQuery(id, trx).first();
 
     if (wallet) return wallet;
     if (useWalletError) throw new WalletNotFoundError(errorMessage || id);
     throw new ModelNotFoundError(errorMessage || 'Wallet not found');
   }
 
+  /**
+   * Adds money to a wallet
+   * @param body
+   */
   async fundWallet(body: FundWalletDTO) {
     try {
-      const wallet = await this.creditWallet(body.user, body.amount);
+      const wallet = await this.repo.creditWallet(body.user, body.amount);
 
       //Todo: Log transaction
       // const transaction = await TransactionLogger.fund(body, wallet);
@@ -98,68 +83,13 @@ export class WalletService {
   }
 
   /**
-   * Credits a wallet with a specified amount.
-   * @param id Wallet id or user's phone number or user id
-   * @param amount Amount to credit the wallet with
-   * @param errorMessage Optional error message to be thrown if the wallet is not found
-   */
-  async creditWallet(id: string, amount: number) {
-    await this.walletQuery(id).increment({
-      balance: amount,
-      ledger_balance: amount
-    });
-
-    const wallet = await this.walletQuery(id).first();
-    if (!wallet) throw new WalletNotFoundError(id);
-
-    if (!wallet.has_funded)
-      return await this.walletQuery(id).update({ has_funded: true });
-
-    return wallet;
-  }
-
-  /**
-   * Debits a specified amount from a wallet
-   * @param id Wallet id or user's phone number or user id
-   * @param amount Amount to debit from the wallet
-   * @param errorMessage Optional error message to be thrown if the wallet is not found
-   */
-  async debitWallet(id: string, amount: number, errorMessage?: string) {
-    await this.walletQuery(id)
-      .where('balance', '>=', amount)
-      .where('ledger_balance', '>=', amount)
-      .increment({
-        balance: -amount,
-        ledger_balance: -amount
-      });
-
-    const wallet = await this.walletQuery(id).first();
-    if (!wallet) throw new WalletNotFoundError(errorMessage || id);
-
-    return wallet;
-  }
-
-  /**
-   * Freezes or unfreezes a user's wallet
-   * @param id Wallet id or user's phone number or user id
-   * @param channel User's wallet channel
-   */
-  async freezeOrUnfreezeUserWallet(body: FreezeWalletDTO) {
-    const is_frozen = body.action === 'freeze' ? true : false;
-    await this.walletQuery(body.user).update({ is_frozen });
-
-    const wallet = await this.walletQuery(body.user).first();
-    return this.format(wallet);
-  }
-
-  /**
    * Transfers money between wallets
    * @param options Options for the transfer
    */
   async transfer(options: TransferOptions, trx?: Knex.Transaction) {
     const { amount, errorMessagePrefix } = options;
-    const sender = await this.getWallet(options.sender, true);
-    const recipient = await this.getWallet(options.recipient, true);
+    const sender = await this.getWallet(options.sender, true, null, trx);
+    const recipient = await this.getWallet(options.recipient, true, null, trx);
 
     if (!amount) throw new ActionNotAllowedError('Amount not specified');
     if (sender.id === recipient.id) throw new SameWalletError();
@@ -171,9 +101,96 @@ export class WalletService {
       'democredit_to_democredit'
     );
 
-    const updatedSender = await this.debitWallet(sender.id, amount);
-    const updatedRecipient = await this.creditWallet(recipient.id, amount);
+    const updatedSender = await this.repo.debitWallet(
+      sender.id,
+      amount,
+      null,
+      trx
+    );
+    const updatedRecipient = await this.repo.creditWallet(
+      recipient.id,
+      amount,
+      trx
+    );
     return { senderWallet: updatedSender, recipientWallet: updatedRecipient };
+  }
+
+  async withdraw(body: DebitWalletDTO) {
+    const trx = await this.repo.baseKnex.transaction();
+
+    try {
+      body.fee = 1000; //charge N10 for withdrawals
+      body.from_account = '0000000000';
+      body.from_acct_name = 'Direct Debit';
+
+      let wallet = await this.getWallet(body.user.id, true);
+
+      // Validate wallet debit
+      await this.validateWalletDebit(
+        body.amount + body.fee,
+        wallet,
+        'Unable to complete withdrawal because',
+        'democredit_to_account'
+      );
+
+      // credit core tss wallet
+      await this.coreWalletRepo.creditCoreWallet({
+        type: CoreWalletType.TSS,
+        amount: body.amount
+      });
+
+      // credit core fee wallet
+      await this.coreWalletRepo.creditCoreWallet({
+        type: CoreWalletType.FEE,
+        amount: body.fee
+      });
+
+      // debit user's wallet
+      wallet = await this.repo.debitWallet(wallet._id, body.amount + body.fee);
+
+      await this.transactionService.logFeeDirectCreditTransaction(
+        body.user,
+        wallet,
+        body.fee,
+        trx
+      );
+
+      await this.transactionService.logTssCreditTransaction(
+        body.user,
+        wallet,
+        body.amount,
+        body.from_acct_name,
+        body.from_account,
+        trx
+      );
+
+      await this.transactionService.logDirectDebitTransaction(
+        body.amount,
+        body.from_acct_name,
+        body.from_account,
+        body.user,
+        wallet,
+        body.narration,
+        `tr_${ulid()}`
+      );
+
+      return wallet;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  /**
+   * Freezes or unfreezes a user's wallet
+   * @param id Wallet id or user's phone number or user id
+   * @param channel User's wallet channel
+   */
+  async freezeOrUnfreezeUserWallet(body: FreezeWalletDTO) {
+    const is_frozen = body.action === 'freeze' ? true : false;
+    await this.repo.walletQuery(body.user).update({ is_frozen });
+
+    const wallet = await this.repo.walletQuery(body.user).first();
+    return this.format(wallet);
   }
 
   /**

@@ -11,10 +11,10 @@ export async function up(knex: Knex): Promise<void> {
       category: (t) => t.string('category'),
       reference: (t) => t.string('reference').notNullable(),
       description: (t) => t.string('description'),
-      sender_id: (t) => t.integer('sender_id').unsigned().notNullable(),
-      recipient_id: (t) => t.integer('recipient_id').unsigned().notNullable(),
-      sender: (t) => t.json('sender').notNullable(),
-      recipient: (t) => t.json('recipient').notNullable()
+      sender_id: (t) => t.integer('sender_id').unsigned(),
+      recipient_id: (t) => t.integer('recipient_id').unsigned(),
+      sender: (t) => t.json('sender'),
+      recipient: (t) => t.json('recipient')
     });
 
     table

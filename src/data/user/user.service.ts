@@ -162,7 +162,7 @@ export class UserService implements IUserService {
    * Returns a user account
    */
   async getUserAccount(
-    id: string,
+    id: string | number,
     format: boolean = true,
     options?: GenericFetchOptions
   ) {

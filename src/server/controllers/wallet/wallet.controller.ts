@@ -13,13 +13,16 @@ import gateman from '@app/common/services/gateman';
 import { BaseController } from '../base';
 import { default as Validator } from '@app/server/middlewares/validator';
 import { WalletService } from '@app/data/wallet';
-import { fundWallet } from './wallet.validator';
-import { FundWalletDTO, FreezeWalletDTO } from './wallet.dto';
+import { UserService } from '@app/data/user';
+import { fundWallet, debitWallet } from './wallet.validator';
+import { FundWalletDTO, DebitWalletDTO, FreezeWalletDTO } from './wallet.dto';
 
 @controller('/wallet')
 export default class WalletController extends BaseController {
   constructor(
-    @inject(TYPES.WalletService) private walletService: WalletService
+    @inject(TYPES.WalletService) private walletService: WalletService,
+    @inject(TYPES.UserService)
+    private userService: UserService
   ) {
     super();
   }
@@ -56,6 +59,30 @@ export default class WalletController extends BaseController {
       body.user = req.user;
       const wallet = await this.walletService.fundWallet(body);
       this.handleSuccess(req, res, wallet);
+    } catch (err) {
+      this.handleError(req, res, err);
+    }
+  }
+
+  /**
+   * Instantly debits a user's wallet to fufill a withdrawal transfer request
+   *
+   * This is similar to an NIP direct debit request, and ideally, this request would not be performed by the user, but from NIBSS
+   * In this case, since it's not a transfer to another DemoCredit account, the amount would be withdrawn from the user's wallet and settled into DemoCredit's core wallet, for later settlement with NIBSS
+   */
+  @httpPost('/withdraw', gateman.guard('user'), Validator(debitWallet))
+  async withdraw(
+    @request() req: Request,
+    @response() res: Response,
+    @requestBody() body: DebitWalletDTO
+  ) {
+    try {
+      body.user = await this.userService.getUserAccount(req.user);
+      const wallet = await this.walletService.withdraw(body);
+      this.handleSuccess(req, res, {
+        ledger_balance: wallet.ledger_balance,
+        available_balance: wallet.balance
+      });
     } catch (err) {
       this.handleError(req, res, err);
     }

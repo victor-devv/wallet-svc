@@ -39,6 +39,7 @@ export interface User extends Model {
 export interface IUserService {
   updatePassword: (user_id: string, plain_text: string) => Promise<User>;
   isPasswordValid: (user_id: string, plain_text: string) => Promise<boolean>;
+  getUserAccount(id: string | number, format: boolean, options?: any);
 
   // updatePin: (user_id: string, plain_text: string) => Promise<User>;
   // isPinValid: (user_id: string, plain_text: string) => Promise<boolean>;

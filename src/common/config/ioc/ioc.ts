@@ -2,7 +2,7 @@ import { Container } from 'inversify';
 import { TYPES } from './types';
 import '../../../server/controllers';
 
-import { UserRepository, UserService } from '../../../data/user';
+import { UserRepository, UserService, IUserService } from '../../../data/user';
 import { WalletRepository, WalletService } from '../../../data/wallet';
 import { NubanRepository, NubanService } from '../../../data/nuban';
 import { BaseRepository } from '../../../data/base/base.repo';
@@ -10,7 +10,7 @@ import { ChannelRepository } from '../../../data/channel/channel.repo';
 import { CoreWalletRepository } from '../../../data/core_wallet/core_wallet.repo';
 import { TransferRepository, TransferService } from '../../../data/transfer';
 import {
-//   TransactionRepository,
+  TransactionRepository,
   TransactionService
 } from '../../../data/transaction';
 
@@ -18,6 +18,7 @@ const container = new Container({ skipBaseClassChecks: true });
 
 // bind services
 container.bind<UserService>(TYPES.UserService).to(UserService);
+container.bind<IUserService>('IUserService').to(UserService);
 container.bind<WalletService>(TYPES.WalletService).to(WalletService);
 container.bind<NubanService>(TYPES.NubanService).to(NubanService);
 container.bind<TransferService>(TYPES.TransferService).to(TransferService);
@@ -39,8 +40,8 @@ container
 container
   .bind<TransferRepository>(TYPES.TransferRepository)
   .to(TransferRepository);
-// container
-//   .bind<TransactionRepository>(TYPES.TransactionRepository)
-//   .to(TransactionRepository);
+container
+  .bind<TransactionRepository>(TYPES.TransactionRepository)
+  .to(TransactionRepository);
 
 export default container;

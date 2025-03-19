@@ -1,5 +1,5 @@
 import { TransferParticipant, TransferType } from '@app/data/transfer';
-import { TransactionCategories } from '@app/data/transaction';
+import { TransactionCategories } from '@app/data/transaction/transaction.typings';
 
 /**
  * Typings for a creating a transfer

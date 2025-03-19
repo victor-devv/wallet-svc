@@ -8,6 +8,7 @@ export const UNTRACKED_DEBIT_TYPES = Object.freeze(['fee']);
 const walletDebitType = [
   // instant transfers
   'democredit_to_democredit',
+  'democredit_to_account',
 
   // for various fee debits
   'fee',

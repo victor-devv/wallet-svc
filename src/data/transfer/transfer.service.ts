@@ -22,13 +22,16 @@ export class TransferService {
     try {
       await this.userService.validatePin(user, body.pin);
       delete body.pin;
-      
+
       const { senderWallet, recipientWallet } =
-        await this.walletService.transfer({
-          sender: user,
-          recipient: body.recipient,
-          amount: body.amount
-        });
+        await this.walletService.transfer(
+          {
+            sender: user,
+            recipient: body.recipient,
+            amount: body.amount
+          },
+          trx
+        );
 
       const sender = await this.userService.getUserAccount(user, false, {
         return_id: true,
@@ -62,7 +65,9 @@ export class TransferService {
         trx
       );
 
-      //const { reference } = await TransactionLogger.transfer(transfer);
+      //ideaslly, this should be pushed to a queue
+      await this.transactionService.logTransfer(transfer, trx);
+
       await trx.commit();
 
       return { sender: this.walletService.format(senderWallet), transfer };

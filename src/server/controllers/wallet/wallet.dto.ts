@@ -24,6 +24,21 @@ export interface FundWalletDTO {
   user: string;
 }
 
+/**
+ * DTO for performing withdrawals
+ */
+export interface DebitWalletDTO {
+  account: string;
+  narration: string;
+  amount: number;
+  pin: string;
+  fee: number;
+  from_account: string;
+  from_acct_name: string;
+  reference: string;
+  user: any;
+}
+
 export type WALLET_ACTION_TYPES = 'freeze' | 'unfreeze';
 
 /**

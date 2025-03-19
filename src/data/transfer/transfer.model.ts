@@ -5,17 +5,17 @@ import { Model } from '../base';
  */
 export interface TransferParticipant {
   id: number;
-  uuid: string;
+  ulid: string;
   first_name: string;
   last_name: string;
   phone_number: string;
   profile_picture?: string;
   category?: string;
   account_number?: string;
-  channel?: string;
+  channel: string;
   bank_code?: string;
-  wallet_balance?: number;
-  wallet_ledger_balance?: number;
+  wallet_balance: number;
+  wallet_ledger_balance: number;
   alias_account_number?: string;
 }
 
@@ -33,7 +33,8 @@ export enum TransferType {
   core_tss = 'core_tss',
   core_fee = 'core_fee',
   stamp_duty_fee = 'stamp_duty_fee',
-  disbursement_fee = 'disbursement_fee'
+  disbursement_fee = 'disbursement_fee',
+  withdrawal = 'withdrawal'
 }
 
 /**
