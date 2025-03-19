@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { fakerDE as faker } from '@faker-js/faker';
 import { ulid } from 'ulidx';
 import { Gateman } from '@random-guys/gateman';
@@ -66,8 +67,8 @@ export function mockUserRequest(): SignupDTO {
       latitude: faker.location.latitude().toString(),
       longitude: faker.location.longitude().toString(),
       street: faker.location.streetAddress(),
-      city: faker.location.city(),
-      state: getRandom(['Lagos', 'Ogun']),
+      city: 'Yaba',
+      state: 'Lagos',
     },
     channel: 'demo_credit',
     phone_number: generatePhoneNumber(),    
@@ -102,3 +103,29 @@ export const mockHeadlessToken = async (
   });
   return `DemoCredit ${await mockGateman.createHeadlessToken({ id: _ulid })}`;
 };
+
+/**
+ * Funds a mock wallet
+ * @param user User id
+ * @param amount Amount to be funded in wallet
+ */
+export async function fundMockWallet(base: string, amount: number, token: string) {
+  const body = {
+    reference: ulid(),
+    adapter: 'paystack',
+    source: 'card',
+    amount
+  };
+
+  const { data } = await axios.post(
+    `${base}/api/v1/wallet/fund`,
+    body,
+    {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    }
+  );
+
+  return data.data;
+}
