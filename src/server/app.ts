@@ -13,6 +13,7 @@ import requestLogger from './middlewares/requestLogger';
 import { responseLogger } from './middlewares/responseLogger';
 import { MetricsService } from '@app/server/services';
 import { ChannelRepo } from '@app/data/channel';
+import { setupCoreWallets } from '@app/data/core_wallet';
 
 export class App {
   private server: InversifyExpressServer;
@@ -84,7 +85,7 @@ export class App {
       ];
 
       //@ts-ignore
-      const _channels = await ChannelRepo.create(chan) as Channel[];
+      const _channels = (await ChannelRepo.create(chan)) as Channel[];
       const channels = _channels.map((it) => {
         return {
           name: it.name,
@@ -99,7 +100,7 @@ export class App {
       //channel likely already exists
       try {
         //@ts-ignore
-        const _channels = await ChannelRepo.all() as Channel[];
+        const _channels = (await ChannelRepo.all()) as Channel[];
         const channels = _channels.map((it) => {
           return {
             name: it.name,
@@ -109,8 +110,17 @@ export class App {
         });
         redis.set('ACCOUNT_CHANNELS_BLOCKS', JSON.stringify(channels));
         logger.message('😎  default account channel(s) created');
-      } catch (error) {logger.error(error);}
+      } catch (error) {
+        logger.error(error);
+      }
     }
+  }
+
+  /**
+   * Creates core wallets (used in tests)
+   */
+  async createCoreWallets() {
+    await setupCoreWallets();
   }
 
   /**

@@ -59,6 +59,21 @@ export class DB {
         .catch((err) => logger.error(err, 'Migration Error:'));
   }
 
+  async dropAllTables() {
+    if (env.app_env == 'test') {
+      await this.connection.raw('SET FOREIGN_KEY_CHECKS = 0');
+
+      const tables = await this.connection('information_schema.tables')
+        .where('table_schema', env.db_name)
+        .select('table_name');
+
+        for (const { table_name } of tables) {
+          await this.connection.raw(`DROP TABLE IF EXISTS \`${table_name}\``);
+        }
+        await this.connection.raw('SET FOREIGN_KEY_CHECKS = 1');
+    }
+  }
+
   /**
    * Closes the database connection.
    */
