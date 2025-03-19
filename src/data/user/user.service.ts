@@ -13,7 +13,8 @@ import {
   UserExistsError,
   InvalidPhoneNumberError,
   CountryNotSupportedError,
-  FrozenWalletError
+  FrozenWalletError,
+  PinNotSetError
 } from '@app/server/controllers/base';
 import { PHONE_CODES } from '@app/data/base/constants';
 import { SignupDTO, LoginDTO } from '@app/server/controllers/user/user.dto';
@@ -192,6 +193,8 @@ export class UserService implements IUserService {
   async validatePin(user_id: string, pin: string) {
     try {
       const user = await this.repo.byID(user_id);
+
+      if (!user.transaction_pin) throw new PinNotSetError();
 
       await PinRateLimiterService.isUserAccountBlocked(user.account_number);
 

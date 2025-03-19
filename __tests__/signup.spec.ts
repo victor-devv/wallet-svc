@@ -46,7 +46,7 @@ it('creates a new account', async () => {
   expect(data.user.phone_number).toBe(payload.phone_number);
   expect(data.user.profile_picture).toBe(payload.profile_picture);
   expect(data.user.email).toBe(payload.email);
-  expect(data.wallet.balance).toBe("0.00");
+  expect(data.wallet.balance).toBe('0.00');
   expect(data.token).toBeDefined();
 });
 

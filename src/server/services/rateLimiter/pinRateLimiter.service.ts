@@ -4,7 +4,7 @@ import {
   InvalidPinError,
   FrozenWalletError
 } from '../../controllers/base';
-import { 
+import {
   MAX_FAILED_PIN_TRIES,
   TRANSACTION_PIN_TRIES_KEY,
   TRANSACTION_PIN_LOCKED_KEY,
@@ -73,7 +73,7 @@ class PinRateLimiterService {
    * @param account_number User account number
    */
   private async setLockedOutStatus(account_number: string) {
-    await redis.set(this.blockedKey(account_number), true);
+    await redis.set(this.blockedKey(account_number), 1);
   }
 
   /**

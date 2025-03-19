@@ -8,6 +8,34 @@ import env from '../../src/common/config/env/env';
 import { sanitiseGmailAddress } from '../../src/common/utils/misc';
 import { randomPassword } from '../../src/server/utils';
 
+export function signupPayload() {
+  let email = faker.internet.email();
+  if (email.endsWith('gmail.com')) email = sanitiseGmailAddress(email);
+
+  const eighteenYearsAgo = new Date();
+  eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+
+  return {
+    first_name: faker.person.firstName(),
+    last_name: faker.person.lastName(),
+    gender: getRandom(['female', 'male']),
+    dob: faker.date
+      .past({ years: 30, refDate: eighteenYearsAgo })
+      .toISOString()
+      .split('T')[0],
+    email,
+    location: {
+      latitude: faker.location.latitude().toString(),
+      longitude: faker.location.longitude().toString(),
+      street: faker.location.streetAddress(),
+      city: 'Yaba',
+      state: 'Lagos'
+    },
+    password: randomPassword(),
+    phone_number: generatePhoneNumber()
+  };
+}
+
 /**
  * Picks a random item from an array
  * @param items Array to pick the items from

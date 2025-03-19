@@ -1,16 +1,14 @@
 import 'reflect-metadata';
 import supertest, { Agent } from 'supertest';
 import HttpStatus from 'http-status-codes';
-import { fakerDE as faker } from '@faker-js/faker';
 import redis from '../src/common/services/redis';
 import { App } from '../src/server/app';
 import DB from '../src/server/db';
 import { randomPassword } from '../src/server/utils';
-import { generatePhoneNumber, getResponseData, getRandom } from './mocks';
+import { signupPayload, generatePhoneNumber, getResponseData } from './mocks';
 import { PasswordRateLimiterService } from '../src/server/services';
 import { DAILY_FAILED_LOGIN_TRIES } from '../src/server/constants';
 import { LockedOutError } from '../src/server/controllers/base';
-import { sanitiseGmailAddress } from '../src/common/utils/misc';
 
 const BASE_URL = '/api/v1/user';
 
@@ -32,34 +30,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await DB.disconnect();
 });
-
-function signupPayload() {
-  let email = faker.internet.email();
-  if (email.endsWith('gmail.com')) email = sanitiseGmailAddress(email);
-
-  const eighteenYearsAgo = new Date();
-  eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
-
-  return {
-    first_name: faker.person.firstName(),
-    last_name: faker.person.lastName(),
-    gender: getRandom(['female', 'male']),
-    dob: faker.date
-      .past({ years: 30, refDate: eighteenYearsAgo })
-      .toISOString()
-      .split('T')[0],
-    email,
-    location: {
-      latitude: faker.location.latitude().toString(),
-      longitude: faker.location.longitude().toString(),
-      street: faker.location.streetAddress(),
-      city: 'Yaba',
-      state: 'Lagos'
-    },
-    password: randomPassword(),
-    phone_number: generatePhoneNumber()
-  };
-}
 
 it('logs in a user', async () => {
   const payload = signupPayload();
