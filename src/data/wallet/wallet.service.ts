@@ -123,7 +123,7 @@ export class WalletService {
       body.from_account = '0000000000';
       body.from_acct_name = 'Direct Debit';
 
-      let wallet = await this.getWallet(body.user.id, true);
+      let wallet = await this.getWallet(body.user.account_number, true);
 
       // Validate wallet debit
       await this.validateWalletDebit(
@@ -146,7 +146,7 @@ export class WalletService {
       });
 
       // debit user's wallet
-      wallet = await this.repo.debitWallet(wallet._id, body.amount + body.fee);
+      wallet = await this.repo.debitWallet(wallet.id, body.amount + body.fee);
 
       await this.transactionService.logFeeDirectCreditTransaction(
         body.user,
