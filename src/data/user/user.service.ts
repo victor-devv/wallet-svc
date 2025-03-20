@@ -24,6 +24,7 @@ import {
 } from '@app/server/services';
 import { CreateWalletDTO } from '@app/server/controllers/wallet/wallet.dto';
 import { GenericFetchOptions } from '@app/data/base';
+import { AdjutorService } from '@app/server/services';
 
 @injectable()
 export class UserService implements IUserService {
@@ -32,7 +33,8 @@ export class UserService implements IUserService {
   constructor(
     @inject(TYPES.UserRepository) private repo: UserRepository,
     @inject(TYPES.WalletService) private walletService: WalletService,
-    @inject(TYPES.NubanService) private nubanService: NubanService
+    @inject(TYPES.NubanService) private nubanService: NubanService,
+    @inject(TYPES.AdjutorService) private adjutorService: typeof AdjutorService
   ) {}
 
   /**
@@ -45,8 +47,10 @@ export class UserService implements IUserService {
       await PasswordRateLimiterService.isAccountClosed(body.phone_number);
 
       // sanitise gmail addresses & check if already in use
-      if (body.email)
+      if (body.email) {
         body.email = await this.sanitiseAndValidateEmail(body.email);
+        await this.adjutorService.verifyKarmaBlacklist(body.email);
+      } else body.email = await this.sanitiseAndValidateEmail(body.phone_number); 
 
       const phoneNumber = this.convertLocalToInternational(body.phone_number);
       const { phone_number, phone_meta } =

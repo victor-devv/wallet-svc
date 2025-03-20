@@ -1,4 +1,5 @@
 export const TYPES = {
+  AdjutorService: Symbol.for('AdjutorService'),
   TransactionService: Symbol.for('TransactionService'),
   TransactionRepository: Symbol.for('TransactionRepository'),
   TransferService: Symbol.for('TransferService'),

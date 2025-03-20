@@ -208,6 +208,26 @@ export class CountryNotSupportedError extends ControllerError {
   }
 }
 
+export class UserBlacklistedError extends ControllerError {
+  constructor() {
+    const errorMessage = 'You are not allowed to register. Please contact support for more information';
+    super(errorMessage);
+
+    this.code = HttpStatus.BAD_REQUEST;
+    this.error_code = 316;
+  }
+}
+
+export class BlacklistCheckFailedError extends ControllerError {
+  constructor() {
+    const errorMessage = 'We encountered an error while processing your request. Please try again';
+    super(errorMessage);
+
+    this.code = HttpStatus.BAD_REQUEST;
+    this.error_code = 316;
+  }
+}
+
 export interface UserNotFoundErrorInterface extends Error {
   code: number;
   error_code: number;

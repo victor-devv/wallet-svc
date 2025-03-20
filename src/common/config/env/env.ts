@@ -22,6 +22,8 @@ const requiredEnvVars = {
   db_username: process.env.DB_USERNAME,
   db_password: process.env.DB_PASSWORD,
   port: Number(process.env.PORT),
+  adjutor_api_key: process.env.ADJUTOR_API_KEY,
+  adjutor_base_url: process.env.ADJUTOR_BASE_URL,
   gateman_key: process.env.GATEMAN_KEY,
   redis_url: process.env.REDIS_URL,
   default_otp: process.env.DEFAULT_OTP,

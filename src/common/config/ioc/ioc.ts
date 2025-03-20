@@ -13,6 +13,7 @@ import {
   TransactionRepository,
   TransactionService
 } from '../../../data/transaction';
+import { AdjutorService } from '../../../server/services/adjutor/adjutor.service';
 
 const container = new Container({ skipBaseClassChecks: true });
 
@@ -25,7 +26,10 @@ container.bind<TransferService>(TYPES.TransferService).to(TransferService);
 container
   .bind<TransactionService>(TYPES.TransactionService)
   .to(TransactionService);
-
+container
+  .bind<AdjutorService>(TYPES.AdjutorService)
+  .to(AdjutorService);
+  
 // bind repositories
 container.bind<BaseRepository<any>>(TYPES.BaseRepository).to(BaseRepository);
 container.bind<UserRepository>(TYPES.UserRepository).to(UserRepository);
