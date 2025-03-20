@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { fakerDE as faker } from '@faker-js/faker';
 import { ulid } from 'ulidx';
 import { Gateman } from '@random-guys/gateman';
@@ -132,28 +131,37 @@ export const mockHeadlessToken = async (
   return `DemoCredit ${await mockGateman.createHeadlessToken({ id: _ulid })}`;
 };
 
-/**
- * Funds a mock wallet
- * @param user User id
- * @param amount Amount to be funded in wallet
- */
-export async function fundMockWallet(base: string, amount: number, token: string) {
-  const body = {
-    reference: ulid(),
-    adapter: 'paystack',
-    source: 'card',
-    amount
-  };
-
-  const { data } = await axios.post(
-    `${base}/api/v1/wallet/fund`,
-    body,
+export async function createDefaultChannels() {
+  const chan = [
     {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    }
-  );
+      name: 'demo_credit',
+      min: 650_000_000,
+      max: 659_999_999
+    },
+  ];
 
-  return data.data;
+  redis.set('ACCOUNT_CHANNELS_BLOCKS', JSON.stringify(chan));
 }
+
+export const createSetTransactionPinPayload = () => ({
+  pin: randomDigits(4)
+});
+
+/**
+ * Creates a mock wallet transfer payload
+ * @param recipient
+ * @param amount
+ */
+export const createWalletTransferPayload = (recipient, amount, pin) => ({
+  amount,
+  description: 'Funding my wallet!',
+  recipient,
+  pin
+});
+
+export const createWalletFundPayload = (amount) => ({
+  reference: ulid(),
+  adapter: 'paystack',
+  source: 'card',
+  amount
+});

@@ -53,9 +53,11 @@ export class WalletRepository extends BaseRepository<Wallet> {
     const wallet = await this.walletQuery(id, trx).first();
     if (!wallet) throw new WalletNotFoundError(id);
 
-    if (!wallet.has_funded)
-      return await this.walletQuery(id, trx).update({ has_funded: true });
-
+    if (!wallet.has_funded) {
+      await this.walletQuery(id, trx).update({ has_funded: true });
+      return await this.walletQuery(id, trx).first();
+    }
+      
     return wallet;
   }
 
