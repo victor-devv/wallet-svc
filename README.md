@@ -115,7 +115,7 @@ Ensure you have Docker and Docker Compose installed
 
 ## API Documentation
 
-API endpoints and request formats can be found in the API documentation [here]().
+API endpoints and request formats can be found in the API documentation at [https://documenter.getpostman.com/view/23596345/2sAYkGJyWA](https://documenter.getpostman.com/view/23596345/2sAYkGJyWA).
 
 ## ER Diagram
 
