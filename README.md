@@ -1,7 +1,6 @@
-# Demo Credit
+# Demo Wallet
 
-Demo Credit is a mobile lending application that provides wallet functionality for borrowers to receive loans. Wallet accounts are automatically created upon user signup, and an API call is made to Adjutor's Karma Blacklist API to verify if the user is blacklisted.
-
+Demo Wallet is a mobile lending application that provides wallet functionality for users. Wallet accounts are automatically created upon user signup.
 ## Features
 
 - **User Authentication**: Sign up and log in securely.
@@ -29,10 +28,6 @@ Demo Credit is a mobile lending application that provides wallet functionality f
 - Redis
 - Jest
 
-## External Dependencies
-
-- `Adjutor` - This is used to verify bad actors
-
 ## Installation
 
 ### Prerequisites
@@ -51,8 +46,8 @@ Ensure you have a running MySQL and Redis instance
 1. Clone the repository:
 
    ```sh
-   git clone https://github.com/victor-devv/demo-credit.git
-   cd demo-credit
+   git clone https://github.com/victor-devv/wallet-svc.git
+   cd wallet-svc
    ```
 
 2. Install dependencies:
@@ -90,8 +85,8 @@ Ensure you have Docker and Docker Compose installed
 1. Clone the repository:
 
    ```sh
-   git clone https://github.com/victor-devv/demo-credit.git
-   cd demo-credit
+   git clone https://github.com/victor-devv/wallet-svc.git
+   cd wallet-svc
    ```
 
 2. Install dependencies:
@@ -125,4 +120,4 @@ API endpoints and request formats can be found in the API documentation at [http
 
 ---
 
-**Repository Link**: [Demo Credit](https://github.com/victor-devv/demo-credit)
+**Repository Link**: [Demo Credit](https://github.com/victor-devv/wallet-svc)
