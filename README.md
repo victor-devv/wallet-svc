@@ -1,6 +1,6 @@
 # Demo Wallet
 
-Demo Wallet is a mobile lending application that provides wallet functionality for users. Wallet accounts are automatically created upon user signup.
+Demo Wallet provides wallet functionality for users. Wallet accounts are automatically created upon user signup.
 ## Features
 
 - **User Authentication**: Sign up and log in securely.
